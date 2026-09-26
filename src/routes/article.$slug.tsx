@@ -1,7 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
-import { byCategory, getArticle, type Article } from "@/lib/news-data";
+import { byCategory, getArticle, type Article, type Category } from "@/lib/news-data";
+
+const CATEGORY_ROUTES: Record<Category, "/world" | "/tech" | "/business" | "/culture"> = {
+  World: "/world",
+  Tech: "/tech",
+  Business: "/business",
+  Culture: "/culture",
+};
+
 
 export const Route = createFileRoute("/article/$slug")({
   loader: ({ params }) => {
@@ -92,11 +100,12 @@ function ArticlePage() {
               Back to front page
             </Link>
             <Link
-              to={`/${article.category.toLowerCase()}`}
+              to={CATEGORY_ROUTES[article.category]}
               className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
             >
               More in {article.category} →
             </Link>
+
           </div>
         </div>
 

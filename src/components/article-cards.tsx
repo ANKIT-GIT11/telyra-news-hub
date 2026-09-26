@@ -9,9 +9,10 @@ export function ArticleImageCard({
 }: {
   article: Article;
   featured?: boolean;
-  className?: string;
-  delay?: number;
+  className?: string | undefined;
+  delay?: number | undefined;
 }) {
+
   return (
     <Link
       to="/article/$slug"
