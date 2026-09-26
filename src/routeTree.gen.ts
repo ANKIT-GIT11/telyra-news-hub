@@ -10,33 +10,91 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BusinessRouteImport } from './routes/business'
+import { Route as CultureRouteImport } from './routes/culture'
+import { Route as TechRouteImport } from './routes/tech'
+import { Route as WorldRouteImport } from './routes/world'
+import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BusinessRoute = BusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CultureRoute = CultureRouteImport.update({
+  id: '/culture',
+  path: '/culture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TechRoute = TechRouteImport.update({
+  id: '/tech',
+  path: '/tech',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorldRoute = WorldRouteImport.update({
+  id: '/world',
+  path: '/world',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArticleSlugRoute = ArticleSlugRouteImport.update({
+  id: '/article/$slug',
+  path: '/article/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/culture': typeof CultureRoute
+  '/tech': typeof TechRoute
+  '/world': typeof WorldRoute
+  '/article/$slug': typeof ArticleSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/culture': typeof CultureRoute
+  '/tech': typeof TechRoute
+  '/world': typeof WorldRoute
+  '/article/$slug': typeof ArticleSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/business': typeof BusinessRoute
+  '/culture': typeof CultureRoute
+  '/tech': typeof TechRoute
+  '/world': typeof WorldRoute
+  '/article/$slug': typeof ArticleSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/business' | '/culture' | '/tech' | '/world' | '/article/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/business' | '/culture' | '/tech' | '/world' | '/article/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/business'
+    | '/culture'
+    | '/tech'
+    | '/world'
+    | '/article/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BusinessRoute: typeof BusinessRoute
+  CultureRoute: typeof CultureRoute
+  TechRoute: typeof TechRoute
+  WorldRoute: typeof WorldRoute
+  ArticleSlugRoute: typeof ArticleSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +106,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/business': {
+      id: '/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof BusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/culture': {
+      id: '/culture'
+      path: '/culture'
+      fullPath: '/culture'
+      preLoaderRoute: typeof CultureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tech': {
+      id: '/tech'
+      path: '/tech'
+      fullPath: '/tech'
+      preLoaderRoute: typeof TechRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/world': {
+      id: '/world'
+      path: '/world'
+      fullPath: '/world'
+      preLoaderRoute: typeof WorldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/article/$slug': {
+      id: '/article/$slug'
+      path: '/article/$slug'
+      fullPath: '/article/$slug'
+      preLoaderRoute: typeof ArticleSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BusinessRoute: BusinessRoute,
+  CultureRoute: CultureRoute,
+  TechRoute: TechRoute,
+  WorldRoute: WorldRoute,
+  ArticleSlugRoute: ArticleSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
