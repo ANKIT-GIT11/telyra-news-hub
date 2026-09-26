@@ -113,6 +113,16 @@ function ArticlePage() {
             >
               More in {article.category} →
             </Link>
+            {sourceUrl && (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Original source ↗
+              </a>
+            )}
 
           </div>
         </div>
