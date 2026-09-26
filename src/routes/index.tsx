@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const hero = articles[0];
+  const hero: Article = articles[0] ?? articles[0]!;
   const sectionCards = [
     getArticle("post-silicon"),
     getArticle("long-form-revival"),
