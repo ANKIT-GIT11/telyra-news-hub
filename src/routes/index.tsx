@@ -1,19 +1,40 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
-import { articles, getArticle, trending, type Article } from "@/lib/news-data";
+import { articles as mockArticles, type Article } from "@/lib/news-data";
+import { listLiveArticles } from "@/lib/live.functions";
+import { toArticle } from "@/lib/live-articles";
 
+const liveQuery = queryOptions({
+  queryKey: ["live-articles"],
+  queryFn: () => listLiveArticles(),
+});
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Telyra — Today's front page" },
+      { name: "description", content: "The latest world stories from the Telyra newsroom, updated as they are published." },
+      { property: "og:title", content: "Telyra — Today's front page" },
+      { property: "og:description", content: "The latest world stories from the Telyra newsroom, updated as they are published." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(liveQuery),
   component: Index,
+  errorComponent: () => <div className="p-10 text-center text-muted-foreground">The front page couldn't load.</div>,
+  notFoundComponent: () => <div className="p-10 text-center text-muted-foreground">Not found.</div>,
 });
 
 function Index() {
-  const hero = articles[0] as Article;
-  const sectionCards = ["post-silicon", "long-form-revival", "slower-pivot"]
-    .map((slug) => getArticle(slug))
-    .filter((a): a is Article => Boolean(a));
-
+  const { data: rows } = useSuspenseQuery(liveQuery);
+  const isLive = rows.length > 0;
+  const list: Article[] = isLive ? rows.map((r, i) => toArticle(r, i)) : mockArticles;
+  const hero = list[0] as Article;
+  const trending = list.slice(1, 5);
+  const grid = list.slice(isLive ? 1 : 5);
 
   return (
     <div className="min-h-screen font-sans text-foreground antialiased">
@@ -27,13 +48,7 @@ function Index() {
               className="group glass block overflow-hidden rounded-[min(1.5vw,20px)] ring-foreground/10 ring-1 animate-rise"
             >
               <div className="relative">
-                <img
-                  src={hero.image}
-                  alt={hero.imageAlt}
-                  width={1536}
-                  height={864}
-                  className="aspect-[16/9] w-full object-cover"
-                />
+                <img src={hero.image} alt={hero.imageAlt} width={1536} height={864} className="aspect-[16/9] w-full object-cover" />
                 <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
                   {hero.category}
                 </span>
@@ -55,28 +70,17 @@ function Index() {
           </div>
 
           <aside className="col-span-12 lg:col-span-4">
-            <div
-              className="glass h-full rounded-[min(1.5vw,20px)] p-6 ring-foreground/10 ring-1 animate-rise"
-              style={{ animationDelay: "120ms" }}
-            >
+            <div className="glass h-full rounded-[min(1.5vw,20px)] p-6 ring-foreground/10 ring-1 animate-rise" style={{ animationDelay: "120ms" }}>
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-foreground">Trending</h2>
-                <span className="font-mono text-[10px] text-muted-foreground">Live</span>
+                <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-foreground">Latest</h2>
+                <span className="font-mono text-[10px] text-muted-foreground">{isLive ? "Live" : "Preview"}</span>
               </div>
               <ol className="divide-y divide-border">
                 {trending.map((article, i) => (
                   <li key={article.slug} className="flex gap-4 py-3">
-                    <span className="font-display text-xl leading-none font-bold text-primary/70">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <Link
-                      to="/article/$slug"
-                      params={{ slug: article.slug }}
-                      className="group/trend block"
-                    >
-                      <p className="text-sm leading-snug font-medium transition-colors group-hover/trend:text-primary">
-                        {article.title}
-                      </p>
+                    <span className="font-display text-xl leading-none font-bold text-primary/70">{String(i + 1).padStart(2, "0")}</span>
+                    <Link to="/article/$slug" params={{ slug: article.slug }} className="group/trend block">
+                      <p className="text-sm leading-snug font-medium transition-colors group-hover/trend:text-primary">{article.title}</p>
                       <p className="mt-1 font-mono text-[10px] text-muted-foreground">
                         {article.category} · {article.readTime} min
                       </p>
@@ -88,16 +92,18 @@ function Index() {
           </aside>
         </section>
 
-        <section className="py-6 pb-16">
-          <SectionDivider label="Categories" />
-          <div className="grid grid-cols-12 gap-6">
-            {sectionCards.map((article, i) => (
-              <div key={article.slug} className="col-span-12 md:col-span-4">
-                <ArticleImageCard article={article} delay={260 + i * 60} />
-              </div>
-            ))}
-          </div>
-        </section>
+        {grid.length > 0 && (
+          <section className="py-6 pb-16">
+            <SectionDivider label="The newsroom" />
+            <div className="grid grid-cols-12 gap-6">
+              {grid.map((article, i) => (
+                <div key={article.slug} className="col-span-12 md:col-span-4">
+                  <ArticleImageCard article={article} delay={260 + i * 60} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

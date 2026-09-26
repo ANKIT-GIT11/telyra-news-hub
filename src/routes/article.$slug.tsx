@@ -2,6 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
 import { byCategory, getArticle, type Article, type Category } from "@/lib/news-data";
+import { getLiveArticle } from "@/lib/live.functions";
+import { LIVE_PREFIX, toArticle } from "@/lib/live-articles";
 
 const CATEGORY_ROUTES: Record<Category, "/world" | "/tech" | "/business" | "/culture"> = {
   World: "/world",
@@ -10,15 +12,20 @@ const CATEGORY_ROUTES: Record<Category, "/world" | "/tech" | "/business" | "/cul
   Culture: "/culture",
 };
 
-
 export const Route = createFileRoute("/article/$slug")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
+    if (params.slug.startsWith(LIVE_PREFIX)) {
+      const id = params.slug.slice(LIVE_PREFIX.length);
+      const row = await getLiveArticle({ data: { id } }).catch(() => null);
+      if (!row) throw notFound();
+      return { article: toArticle(row), sourceUrl: row.source_url };
+    }
     const article = getArticle(params.slug);
     if (!article) throw notFound();
-    return { article };
+    return { article, sourceUrl: null as string | null };
   },
-  head: ({ params }) => {
-    const article = getArticle(params.slug);
+  head: ({ loaderData }) => {
+    const article = loaderData?.article;
     if (!article) {
       return {
         meta: [{ title: "Not found — Telyra" }, { name: "robots", content: "noindex" }],
@@ -37,10 +44,11 @@ export const Route = createFileRoute("/article/$slug")({
   },
   component: ArticlePage,
   notFoundComponent: ArticleNotFound,
+  errorComponent: ArticleNotFound,
 });
 
 function ArticlePage() {
-  const { article } = Route.useLoaderData() as { article: Article };
+  const { article, sourceUrl } = Route.useLoaderData() as { article: Article; sourceUrl: string | null };
   const related = byCategory(article.category)
     .filter((a) => a.slug !== article.slug)
     .slice(0, 3);
@@ -105,6 +113,16 @@ function ArticlePage() {
             >
               More in {article.category} →
             </Link>
+            {sourceUrl && (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Original source ↗
+              </a>
+            )}
 
           </div>
         </div>
