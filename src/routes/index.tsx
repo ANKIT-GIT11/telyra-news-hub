@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
-import { articles, getArticle, trending } from "@/lib/news-data";
+import { articles, getArticle, trending, type Article } from "@/lib/news-data";
+
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
-  const hero: Article = articles[0] ?? articles[0]!;
-  const sectionCards = [
-    getArticle("post-silicon"),
-    getArticle("long-form-revival"),
-    getArticle("slower-pivot"),
-  ].filter((a) => a !== undefined);
+  const hero = articles[0] as Article;
+  const sectionCards = ["post-silicon", "long-form-revival", "slower-pivot"]
+    .map((slug) => getArticle(slug))
+    .filter((a): a is Article => Boolean(a));
+
 
   return (
     <div className="min-h-screen font-sans text-foreground antialiased">
