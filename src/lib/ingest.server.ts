@@ -35,10 +35,17 @@ async function fetchFeed(url: string): Promise<FeedItem[]> {
 
 type Draft = { title: string; subheadline: string; content: string };
 
-async function rewrite(item: FeedItem, apiKey: string): Promise<Draft> {
-  const prompt = `You are a senior journalist at Telyra, a premium digital newspaper. Rewrite the news item below into an original article in Telyra's voice: highly professional, cinematic, measured, precise.
+async function rewrite(item: FeedItem, apiKey: string): Promise<Draft | null> {
+  const prompt = `You are the editorial gatekeeper and senior journalist at Telyra, a premium digital newspaper covering technology, software, AI, and digital infrastructure.
+
+STEP 1 — Commercial Intent check (do this before writing anything):
+Evaluate the raw news item below. Classify it as high-intent ONLY if it involves software, AI, monetizable tech tools, startups, products, platforms, developers, or digital infrastructure. REJECT it if it is general news, weather, politics without a tech angle, sports, crime, lifestyle, or a philosophical/culture essay — anything with no software, AI, or monetizable tech angle.
+If REJECTED, return exactly: {"rejected": true}
+Do not invent or stretch a tech angle that is not present.
+
+STEP 2 — If ACCEPTED, rewrite the item into an original article in Telyra's voice: highly professional, cinematic, measured, precise.
 Rules: exactly 3 paragraphs separated by blank lines; do not invent quotes, names, figures or facts beyond the source; British spelling is fine.
-Return JSON with keys: "title" (new headline, max 12 words), "subheadline" (one sentence), "content" (the 3 paragraphs).
+Return JSON with keys: "rejected": false, "title" (new headline, max 12 words), "subheadline" (one sentence), "content" (the 3 paragraphs).
 
 Source headline: ${item.title}
 Source summary: ${item.description}`;
