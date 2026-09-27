@@ -1,5 +1,5 @@
 const FEED_URL = "https://feeds.bbci.co.uk/news/world/rss.xml";
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.8-flash";
 
 type FeedItem = { title: string; description: string; link: string; pubDate: string };
 
