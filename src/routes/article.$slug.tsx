@@ -100,6 +100,27 @@ function ArticlePage() {
               {paragraph}
             </p>
           ))}
+
+          {/* Affiliate callout — placeholder content and link */}
+          <aside className="tools-callout mt-10 rounded-2xl p-6 md:p-8 animate-fadein">
+            <p className="tools-kicker font-mono text-[10px] uppercase tracking-[0.25em]">
+              Handpicked for readers
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+              Related Tools &amp; Infrastructure
+            </h2>
+            <p className="tools-body mt-2 max-w-[52ch] text-sm leading-relaxed">
+              The stack, services, and infrastructure our editors recommend
+              alongside this story — tested, compared, and vetted by the Telyra desk.
+            </p>
+            <a
+              href="#"
+              className="tools-cta mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] transition-colors"
+            >
+              Explore the toolkit →
+            </a>
+          </aside>
+
           <div className="mt-8 flex items-center gap-4 animate-fadein">
             <Link
               to="/"
