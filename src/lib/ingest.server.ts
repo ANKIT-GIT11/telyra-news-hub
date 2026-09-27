@@ -96,6 +96,10 @@ export async function runIngestion() {
   for (const item of fresh) {
     try {
       const draft = await rewrite(item, apiKey);
+      if (!draft) {
+        results.push({ source: item.link, ok: false, error: "Rejected: no commercial intent (not tech/software/AI)" });
+        continue;
+      }
       const { error } = await supabaseAdmin.from("review_queue").insert({
         ...draft,
         source_url: item.link,
