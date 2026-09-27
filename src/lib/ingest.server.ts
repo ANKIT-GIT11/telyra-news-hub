@@ -67,7 +67,14 @@ export async function runIngestion() {
   if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not configured");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const feeds = await Promise.all(FEED_URLS.map((url) => fetchFeed(url)));
+  const settled = await Promise.allSettled(FEED_URLS.map((url) => fetchFeed(url)));
+  const feedErrors = settled.flatMap((s, i) =>
+    s.status === "rejected"
+      ? [{ source: FEED_URLS[i] ?? "feed", ok: false, error: `Feed unreachable: ${s.reason instanceof Error ? s.reason.message : String(s.reason)}` }]
+      : [],
+  );
+  const feeds = settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []));
+  if (feeds.length === 0) throw new Error(`All news feeds failed. ${feedErrors.map((e) => e.error).join("; ")}`);
   const items = feeds.flat().sort((a, b) => Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0"));
   const links = items.map((i) => i.link);
   const [{ data: q }, { data: a }] = await Promise.all([
@@ -77,7 +84,7 @@ export async function runIngestion() {
   const seen = new Set([...(q ?? []), ...(a ?? [])].map((r) => r.source_url));
   const fresh = items.filter((i) => !seen.has(i.link)).slice(0, 3);
 
-  const results: { source: string; ok: boolean; error?: string }[] = [];
+  const results: { source: string; ok: boolean; error?: string }[] = [...feedErrors];
   for (const item of fresh) {
     try {
       const draft = await rewrite(item, apiKey);
