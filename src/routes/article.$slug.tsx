@@ -151,8 +151,7 @@ function ArticlePage() {
 
           </div>
         </div>
-
-        {related.length > 0 && (
+{related.length >= 2 && (
           <div className="mt-16">
             <SectionDivider label={`More from ${article.category}`} />
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
