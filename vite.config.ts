@@ -6,8 +6,8 @@ import { nitro } from 'nitro/vite'
 
 export default defineConfig({
   plugins: [
-    tailwindcss(),
     tanstackStart(),
+    tailwindcss(),
     nitro({ preset: 'vercel' }),
     viteReact(),
   ],
