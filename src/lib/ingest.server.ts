@@ -1,4 +1,4 @@
-const FEED_URL = "https://feeds.bbci.co.uk/news/world/rss.xml";
+const FEED_URLS = ["https://techcrunch.com/feed", "https://hnrss.org/frontpage"];
 const GEMINI_MODEL = "gemini-3.8-flash";
 
 type FeedItem = { title: string; description: string; link: string; pubDate: string };
@@ -20,8 +20,8 @@ function tag(block: string, name: string) {
   return m?.[1] ? decode(m[1]) : "";
 }
 
-async function fetchFeed(): Promise<FeedItem[]> {
-  const res = await fetch(FEED_URL, { headers: { "User-Agent": "TelyraBot/1.0" } });
+async function fetchFeed(url: string): Promise<FeedItem[]> {
+  const res = await fetch(url, { headers: { "User-Agent": "TelyraBot/1.0" } });
   if (!res.ok) throw new Error(`RSS fetch failed: ${res.status}`);
   const xml = await res.text();
   const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => {
