@@ -64,7 +64,8 @@ Source summary: ${item.description}`;
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
   const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  const parsed = JSON.parse(text) as Partial<Draft>;
+  const parsed = JSON.parse(text) as Partial<Draft> & { rejected?: boolean };
+  if (parsed.rejected === true || (!parsed.title && !parsed.content)) return null;
   if (!parsed.title || !parsed.content) throw new Error("Gemini returned an incomplete draft");
   return { title: parsed.title, subheadline: parsed.subheadline ?? "", content: parsed.content };
 }
