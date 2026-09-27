@@ -67,7 +67,8 @@ export async function runIngestion() {
   if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not configured");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const items = await fetchFeed();
+  const feeds = await Promise.all(FEED_URLS.map((url) => fetchFeed(url)));
+  const items = feeds.flat().sort((a, b) => Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0"));
   const links = items.map((i) => i.link);
   const [{ data: q }, { data: a }] = await Promise.all([
     supabaseAdmin.from("review_queue").select("source_url").in("source_url", links),
