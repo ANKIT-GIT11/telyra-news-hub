@@ -101,33 +101,7 @@ function AdminPage() {
         )}
         <div className="mt-8 space-y-6">
           {queue.data?.map((d) => (
-            <article key={d.id} className="glass rounded-[20px] p-7 ring-1 ring-foreground/10 animate-rise">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                {d.category} · {d.status}
-                {d.source_url && (
-                  <> · <a href={d.source_url} target="_blank" rel="noreferrer" className="hover:text-foreground">source ↗</a></>
-                )}
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-bold leading-tight">{d.title}</h2>
-              {d.subheadline && <p className="mt-2 text-muted-foreground">{d.subheadline}</p>}
-              <div className="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
-                {d.content.split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => approve.mutate(d.id)} disabled={approve.isPending}
-                  className="rounded-full bg-foreground px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-background hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => reject.mutate(d.id)} disabled={reject.isPending}
-                  className="rounded-full border border-input px-5 py-2.5 text-[11px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground"
-                >
-                  Discard
-                </button>
-              </div>
-            </article>
+            <DraftCard key={d.id} draft={d} approve={approve} reject={reject} />
           ))}
         </div>
       </main>
