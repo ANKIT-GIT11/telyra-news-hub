@@ -21,6 +21,8 @@ export interface Article {
   image: string;
   imageAlt: string;
   body: string[];
+  affiliateTitle?: string;
+  affiliateUrl?: string;
 }
 
 export const articles: Article[] = [

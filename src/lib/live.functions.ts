@@ -11,6 +11,8 @@ export type LiveRow = {
   source_url: string | null;
   category: string;
   published_at: string;
+  affiliate_title: string | null;
+  affiliate_url: string | null;
 };
 
 function publicClient() {
@@ -28,7 +30,7 @@ function publicClient() {
   });
 }
 
-const COLS = "id, title, subheadline, content, source_url, category, published_at";
+const COLS = "id, title, subheadline, content, source_url, category, published_at, affiliate_title, affiliate_url";
 
 export const listLiveArticles = createServerFn({ method: "GET" }).handler(async (): Promise<LiveRow[]> => {
   const { data, error } = await publicClient()
