@@ -108,3 +108,80 @@ function AdminPage() {
     </div>
   );
 }
+
+type Draft = {
+  id: string;
+  title: string;
+  subheadline: string | null;
+  content: string;
+  source_url: string | null;
+  category: string;
+  status: string;
+  affiliate_title: string | null;
+  affiliate_url: string | null;
+};
+
+function DraftCard({
+  draft: d,
+  approve,
+  reject,
+}: {
+  draft: Draft;
+  approve: { mutate: (v: { id: string; affiliateTitle: string; affiliateUrl: string }) => void; isPending: boolean };
+  reject: { mutate: (id: string) => void; isPending: boolean };
+}) {
+  const [affiliateTitle, setAffiliateTitle] = useState(d.affiliate_title ?? "");
+  const [affiliateUrl, setAffiliateUrl] = useState(d.affiliate_url ?? "");
+
+  return (
+    <article className="glass rounded-[20px] p-7 ring-1 ring-foreground/10 animate-rise">
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+        {d.category} · {d.status}
+        {d.source_url && (
+          <> · <a href={d.source_url} target="_blank" rel="noreferrer" className="hover:text-foreground">source ↗</a></>
+        )}
+      </p>
+      <h2 className="mt-2 font-display text-2xl font-bold leading-tight">{d.title}</h2>
+      {d.subheadline && <p className="mt-2 text-muted-foreground">{d.subheadline}</p>}
+      <div className="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
+        {d.content.split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}
+      </div>
+
+      <div className="mt-6 rounded-xl border border-input bg-background/40 p-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          Related Tools box (optional — shown on the published story)
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <input
+            value={affiliateTitle}
+            onChange={(e) => setAffiliateTitle(e.target.value)}
+            placeholder="Box title, e.g. The hosting stack we recommend"
+            className="rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <input
+            value={affiliateUrl}
+            onChange={(e) => setAffiliateUrl(e.target.value)}
+            placeholder="Link URL, e.g. https://…"
+            className="rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={() => approve.mutate({ id: d.id, affiliateTitle, affiliateUrl })}
+          disabled={approve.isPending}
+          className="rounded-full bg-foreground px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-background hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+        >
+          Approve
+        </button>
+        <button
+          onClick={() => reject.mutate(d.id)} disabled={reject.isPending}
+          className="rounded-full border border-input px-5 py-2.5 text-[11px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground"
+        >
+          Discard
+        </button>
+      </div>
+    </article>
+  );
+}
