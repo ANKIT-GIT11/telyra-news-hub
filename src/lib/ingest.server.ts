@@ -1,4 +1,4 @@
-const FEED_URL = "https://feeds.bbci.co.uk/news/world/rss.xml";
+const FEED_URLS = ["https://techcrunch.com/feed", "https://hnrss.org/frontpage"];
 const GEMINI_MODEL = "gemini-3.8-flash";
 
 type FeedItem = { title: string; description: string; link: string; pubDate: string };
@@ -20,8 +20,8 @@ function tag(block: string, name: string) {
   return m?.[1] ? decode(m[1]) : "";
 }
 
-async function fetchFeed(): Promise<FeedItem[]> {
-  const res = await fetch(FEED_URL, { headers: { "User-Agent": "TelyraBot/1.0" } });
+async function fetchFeed(url: string): Promise<FeedItem[]> {
+  const res = await fetch(url, { headers: { "User-Agent": "TelyraBot/1.0" } });
   if (!res.ok) throw new Error(`RSS fetch failed: ${res.status}`);
   const xml = await res.text();
   const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m) => {
@@ -67,7 +67,8 @@ export async function runIngestion() {
   if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not configured");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const items = await fetchFeed();
+  const feeds = await Promise.all(FEED_URLS.map((url) => fetchFeed(url)));
+  const items = feeds.flat().sort((a, b) => Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0"));
   const links = items.map((i) => i.link);
   const [{ data: q }, { data: a }] = await Promise.all([
     supabaseAdmin.from("review_queue").select("source_url").in("source_url", links),
