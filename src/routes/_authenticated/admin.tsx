@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { supabase } from "@/integrations/supabase/client";
-import { approveDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft } from "@/lib/admin.functions";
+import { approveDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft, updateDraftAffiliate } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -30,6 +30,7 @@ function AdminPage() {
   const queue = useQuery({ queryKey: ["queue"], queryFn: () => queueFn(), enabled: status.data?.isAdmin === true });
   const approveFn = useServerFn(approveDraft);
   const rejectFn = useServerFn(rejectDraft);
+  const saveAffiliateFn = useServerFn(updateDraftAffiliate);
   const ingestFn = useServerFn(fetchNewDrafts);
   const [note, setNote] = useState<string | null>(null);
 
@@ -37,7 +38,14 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["queue"] });
     qc.invalidateQueries({ queryKey: ["live-articles"] });
   };
-  const approve = useMutation({ mutationFn: (id: string) => approveFn({ data: { id } }), onSuccess: refresh, onError: (e) => setNote(e.message) });
+  const approve = useMutation({
+    mutationFn: async ({ id, affiliateTitle, affiliateUrl }: { id: string; affiliateTitle: string; affiliateUrl: string }) => {
+      await saveAffiliateFn({ data: { id, affiliate_title: affiliateTitle || null, affiliate_url: affiliateUrl || null } });
+      return approveFn({ data: { id } });
+    },
+    onSuccess: refresh,
+    onError: (e) => setNote(e.message),
+  });
   const reject = useMutation({ mutationFn: (id: string) => rejectFn({ data: { id } }), onSuccess: refresh, onError: (e) => setNote(e.message) });
   const ingest = useMutation({
     mutationFn: () => ingestFn(),
