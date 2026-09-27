@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          affiliate_title: string | null
+          affiliate_url: string | null
           category: string
           content: string
           created_at: string
@@ -28,6 +30,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affiliate_title?: string | null
+          affiliate_url?: string | null
           category?: string
           content: string
           created_at?: string
@@ -40,6 +44,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affiliate_title?: string | null
+          affiliate_url?: string | null
           category?: string
           content?: string
           created_at?: string
@@ -55,6 +61,8 @@ export type Database = {
       }
       review_queue: {
         Row: {
+          affiliate_title: string | null
+          affiliate_url: string | null
           category: string
           content: string
           created_at: string
@@ -67,6 +75,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affiliate_title?: string | null
+          affiliate_url?: string | null
           category?: string
           content: string
           created_at?: string
@@ -79,6 +89,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affiliate_title?: string | null
+          affiliate_url?: string | null
           category?: string
           content?: string
           created_at?: string

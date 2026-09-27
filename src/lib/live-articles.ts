@@ -29,5 +29,8 @@ export function toArticle(row: LiveRow, index = 0): Article {
     image: img.image,
     imageAlt: img.imageAlt,
     body,
+    ...(row.affiliate_title && row.affiliate_url
+      ? { affiliateTitle: row.affiliate_title, affiliateUrl: row.affiliate_url }
+      : {}),
   };
 }
