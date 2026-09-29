@@ -72,3 +72,30 @@ export const fetchNewDrafts = createServerFn({ method: "POST" })
     const { runIngestion } = await import("./ingest.server");
     return runIngestion();
   });
+
+export const createManualDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        title: z.string().trim().min(3).max(200),
+        subheadline: z.string().trim().max(400).optional().default(""),
+        content: z.string().trim().min(20).max(20000),
+        category: z.enum(["World", "Tech", "Business", "Culture"]).default("Tech"),
+        source_url: z.string().trim().url().max(1000).optional().or(z.literal("")),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("review_queue").insert({
+      title: data.title,
+      subheadline: data.subheadline || null,
+      content: data.content,
+      category: data.category,
+      source_url: data.source_url || null,
+      status: "pending",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

@@ -131,7 +131,7 @@ export async function runIngestion() {
       const { error } = await supabaseAdmin.from("review_queue").insert({
         ...draft,
         source_url: item.link,
-        category: "Tech",
+        category: "World",
         published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
         status: "pending",
       });
