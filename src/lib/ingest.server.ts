@@ -33,6 +33,19 @@ async function fetchFeed(url: string): Promise<FeedItem[]> {
     .sort((a, b) => Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0"));
 }
 
+const BATCH_SIZE = 6; // hard cap per run (5–10 allowed)
+const RECENCY_HOURS = 24;
+const MIN_SCORE = 2;
+const KEYWORDS: [RegExp, number][] = [
+  [/\b(ai|a\.i\.|artificial intelligence|llm|gpt|gemini|claude|openai|anthropic|machine learning|neural|model)\b/i, 3],
+  [/\b(saas|startup|software|platform|api|developer|open[- ]source|github|cloud|devops|kubernetes|database)\b/i, 2],
+  [/\b(chip|gpu|nvidia|semiconductor|data ?cent(er|re)|infrastructure|security|cyber|funding|raises|acquires|launch(es)?)\b/i, 1],
+];
+function relevance(i: FeedItem) {
+  const text = `${i.title} ${i.description}`;
+  return KEYWORDS.reduce((n, [re, w]) => n + (re.test(text) ? w : 0), 0);
+}
+
 type Draft = { title: string; subheadline: string; content: string };
 
 async function rewrite(item: FeedItem, apiKey: string): Promise<Draft | null> {
@@ -82,15 +95,30 @@ export async function runIngestion() {
       : [],
   );
   const feeds = settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []));
-  if (feeds.length === 0) throw new Error(`All news feeds failed. ${feedErrors.map((e) => e.error).join("; ")}`);
-  const items = feeds.flat().sort((a, b) => Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0"));
+  if (feeds.length === 0) {
+    return { created: 0, results: feedErrors, message: "News sources are unavailable right now. Try again later, or add a draft by hand below." };
+  }
+  const cutoff = Date.now() - RECENCY_HOURS * 3600_000;
+  const items = feeds
+    .flat()
+    .filter((i) => { const t = Date.parse(i.pubDate || ""); return !Number.isNaN(t) && t >= cutoff; })
+    .map((i) => ({ i, score: relevance(i) }))
+    .filter((x) => x.score >= MIN_SCORE)
+    .sort((x, y) => y.score - x.score || Date.parse(y.i.pubDate) - Date.parse(x.i.pubDate))
+    .map((x) => x.i);
+  if (items.length === 0) {
+    return { created: 0, results: feedErrors, message: `No relevant tech/AI stories from the last ${RECENCY_HOURS} hours. Try again later.` };
+  }
   const links = items.map((i) => i.link);
   const [{ data: q }, { data: a }] = await Promise.all([
     supabaseAdmin.from("review_queue").select("source_url").in("source_url", links),
     supabaseAdmin.from("articles").select("source_url").in("source_url", links),
   ]);
   const seen = new Set([...(q ?? []), ...(a ?? [])].map((r) => r.source_url));
-  const fresh = items.filter((i) => !seen.has(i.link)).slice(0, 3);
+  const fresh = items.filter((i) => !seen.has(i.link)).slice(0, BATCH_SIZE);
+  if (fresh.length === 0) {
+    return { created: 0, results: feedErrors, message: "No new stories since the last fetch — everything recent is already drafted." };
+  }
 
   const results: { source: string; ok: boolean; error?: string }[] = [...feedErrors];
   for (const item of fresh) {
@@ -103,15 +131,18 @@ export async function runIngestion() {
       const { error } = await supabaseAdmin.from("review_queue").insert({
         ...draft,
         source_url: item.link,
-        category: "World",
+        category: "Tech",
         published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
         status: "pending",
       });
       if (error) throw new Error(error.message);
       results.push({ source: item.link, ok: true });
     } catch (e) {
-      results.push({ source: item.link, ok: false, error: e instanceof Error ? e.message : String(e) });
+      const msg = e instanceof Error ? e.message : String(e);
+      results.push({ source: item.link, ok: false, error: msg });
+      if (/Gemini (429|403|402)/.test(msg)) break; // stop the batch on quota/limit errors
     }
   }
-  return { created: results.filter((r) => r.ok).length, results };
+  const created = results.filter((r) => r.ok).length;
+  return { created, results, message: `${created} new draft(s) added from ${fresh.length} checked.` };
 }
