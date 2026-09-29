@@ -4,7 +4,40 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { supabase } from "@/integrations/supabase/client";
-import { approveDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft, updateDraftAffiliate } from "@/lib/admin.functions";
+import { approveDraft, createManualDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft, updateDraftAffiliate } from "@/lib/admin.functions";
+
+type Cat = "World" | "Tech" | "Business" | "Culture";
+function ManualDraft({ onSubmit, pending }: { onSubmit: (v: { title: string; subheadline: string; content: string; category: Cat; source_url: string }) => void; pending: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ title: "", subheadline: "", content: "", category: "Tech" as Cat, source_url: "" });
+  const field = "rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary";
+  return (
+    <div className="glass mt-8 rounded-[20px] p-6 ring-1 ring-foreground/10">
+      <button onClick={() => setOpen(!open)} className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
+        {open ? "− Close" : "+ Create draft by hand"}
+      </button>
+      {open && (
+        <form
+          className="mt-4 grid gap-3"
+          onSubmit={(e) => { e.preventDefault(); onSubmit(f); setF({ title: "", subheadline: "", content: "", category: f.category, source_url: "" }); }}
+        >
+          <input required value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Headline" className={field} />
+          <input value={f.subheadline} onChange={(e) => setF({ ...f, subheadline: e.target.value })} placeholder="Subheadline (optional)" className={field} />
+          <textarea required rows={6} value={f.content} onChange={(e) => setF({ ...f, content: e.target.value })} placeholder="Article body — separate paragraphs with a blank line" className={field} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value as Cat })} className={field}>
+              {(["Tech", "World", "Business", "Culture"] as Cat[]).map((c) => <option key={c}>{c}</option>)}
+            </select>
+            <input value={f.source_url} onChange={(e) => setF({ ...f, source_url: e.target.value })} placeholder="Source link (optional)" className={field} />
+          </div>
+          <button disabled={pending} className="justify-self-start rounded-full bg-foreground px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-background disabled:opacity-50">
+            {pending ? "Saving…" : "Add to queue"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -47,14 +80,28 @@ function AdminPage() {
     onError: (e) => setNote(e.message),
   });
   const reject = useMutation({ mutationFn: (id: string) => rejectFn({ data: { id } }), onSuccess: refresh, onError: (e) => setNote(e.message) });
+  const [cooldown, setCooldown] = useState(0);
+  const startCooldown = () => {
+    setCooldown(60);
+    const t = setInterval(() => setCooldown((c) => { if (c <= 1) { clearInterval(t); return 0; } return c - 1; }), 1000);
+  };
   const ingest = useMutation({
     mutationFn: () => ingestFn(),
+    onMutate: () => setNote("Checking news sources…"),
     onSuccess: (r) => {
       const failed = r.results.filter((x) => !x.ok);
-      setNote(`${r.created} new draft(s) added.${failed.length ? ` ${failed.length} failed: ${failed[0]?.error}` : ""}`);
+      setNote(`${r.message}${failed.length && r.created ? ` ${failed.length} skipped (e.g. ${failed[0]?.error}).` : ""}`);
       refresh();
     },
-    onError: (e) => setNote(e.message),
+    onError: () => setNote("Couldn't fetch stories right now. Please try again in a minute, or add a draft by hand below."),
+    onSettled: startCooldown,
+  });
+  const manualFn = useServerFn(createManualDraft);
+  const manual = useMutation({
+    mutationFn: (v: { title: string; subheadline: string; content: string; category: "World" | "Tech" | "Business" | "Culture"; source_url: string }) =>
+      manualFn({ data: v }),
+    onSuccess: () => { setNote("Draft added to the queue."); refresh(); },
+    onError: () => setNote("Couldn't save the draft — check the title (3+ characters), body (20+ characters) and link."),
   });
 
   const signOut = async () => {
@@ -75,10 +122,10 @@ function AdminPage() {
           <div className="flex gap-3">
             {status.data?.isAdmin && (
               <button
-                onClick={() => ingest.mutate()} disabled={ingest.isPending}
+                onClick={() => ingest.mutate()} disabled={ingest.isPending || cooldown > 0}
                 className="rounded-full bg-primary px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-primary-foreground disabled:opacity-50"
               >
-                {ingest.isPending ? "Drafting…" : "Fetch new stories"}
+                {ingest.isPending ? "Drafting…" : cooldown > 0 ? `Wait ${cooldown}s` : "Fetch new stories"}
               </button>
             )}
             <button onClick={signOut} className="rounded-full border border-input px-5 py-2.5 text-[11px] uppercase tracking-[0.15em]">
@@ -96,6 +143,8 @@ function AdminPage() {
           </div>
         )}
 
+        {status.data?.isAdmin && <ManualDraft onSubmit={(v) => manual.mutate(v)} pending={manual.isPending} />}
+        {queue.isError && <p className="mt-10 text-muted-foreground">Couldn't load the queue. Refresh the page to try again.</p>}
         {queue.data && queue.data.length === 0 && (
           <p className="mt-10 text-muted-foreground">The queue is empty. Fetch new stories to draft fresh articles.</p>
         )}
