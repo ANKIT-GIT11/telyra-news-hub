@@ -33,9 +33,15 @@ async function fetchFeed(url: string): Promise<FeedItem[]> {
     .sort((a, b) => Date.parse(b.pubDate || "0") - Date.parse(a.pubDate || "0"));
 }
 
+const FALLBACK_FEED_URLS = [
+  "https://feeds.arstechnica.com/arstechnica/technology-lab",
+  "https://venturebeat.com/feed/",
+];
 const BATCH_SIZE = 6; // hard cap per run (5–10 allowed)
-const RECENCY_HOURS = 24;
+const RECENCY_HOURS = 72;
 const MIN_SCORE = 2;
+const LOOSE_MIN_SCORE = 1;
+const MIN_TARGET = 5;
 const KEYWORDS: [RegExp, number][] = [
   [/\b(ai|a\.i\.|artificial intelligence|llm|gpt|gemini|claude|openai|anthropic|machine learning|neural|model)\b/i, 3],
   [/\b(saas|startup|software|platform|api|developer|open[- ]source|github|cloud|devops|kubernetes|database)\b/i, 2],
@@ -83,41 +89,63 @@ Source summary: ${item.description}`;
   return { title: parsed.title, subheadline: parsed.subheadline ?? "", content: parsed.content };
 }
 
+async function loadFeeds(urls: string[]) {
+  const settled = await Promise.allSettled(urls.map((url) => fetchFeed(url)));
+  const errors = settled.flatMap((s, i) =>
+    s.status === "rejected"
+      ? [{ source: urls[i] ?? "feed", ok: false, error: `Feed unreachable: ${s.reason instanceof Error ? s.reason.message : String(s.reason)}` }]
+      : [],
+  );
+  const items = settled.flatMap((s) => (s.status === "fulfilled" ? s.value : []));
+  return { items, errors };
+}
+
 export async function runIngestion() {
   const apiKey = process.env["GOOGLE_AI_API_KEY"];
   if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not configured");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const settled = await Promise.allSettled(FEED_URLS.map((url) => fetchFeed(url)));
-  const feedErrors = settled.flatMap((s, i) =>
-    s.status === "rejected"
-      ? [{ source: FEED_URLS[i] ?? "feed", ok: false, error: `Feed unreachable: ${s.reason instanceof Error ? s.reason.message : String(s.reason)}` }]
-      : [],
-  );
-  const feeds = settled.flatMap((s) => (s.status === "fulfilled" ? [s.value] : []));
-  if (feeds.length === 0) {
+  const cutoff = Date.now() - RECENCY_HOURS * 3600_000;
+  const recent = (list: FeedItem[]) =>
+    list.filter((i) => { const t = Date.parse(i.pubDate || ""); return !Number.isNaN(t) && t >= cutoff; });
+
+  const primary = await loadFeeds(FEED_URLS);
+  const feedErrors = [...primary.errors];
+  let pool = recent(primary.items);
+
+  const pickFresh = async (minScore: number) => {
+    const ranked = pool
+      .map((i) => ({ i, score: relevance(i) }))
+      .filter((x) => x.score >= minScore)
+      .sort((x, y) => y.score - x.score || Date.parse(y.i.pubDate) - Date.parse(x.i.pubDate))
+      .map((x) => x.i);
+    const unique = [...new Map(ranked.map((i) => [i.link, i])).values()];
+    if (unique.length === 0) return [];
+    const links = unique.map((i) => i.link);
+    const [{ data: q }, { data: a }] = await Promise.all([
+      supabaseAdmin.from("review_queue").select("source_url").in("source_url", links),
+      supabaseAdmin.from("articles").select("source_url").in("source_url", links),
+    ]);
+    const seen = new Set([...(q ?? []), ...(a ?? [])].map((r) => r.source_url));
+    return unique.filter((i) => !seen.has(i.link));
+  };
+
+  let fresh = await pickFresh(MIN_SCORE);
+  if (fresh.length < MIN_TARGET) {
+    // Primary feeds thin or down — pull in backup tech sources.
+    const backup = await loadFeeds(FALLBACK_FEED_URLS);
+    feedErrors.push(...backup.errors);
+    pool = [...pool, ...recent(backup.items)];
+    fresh = await pickFresh(MIN_SCORE);
+  }
+  if (fresh.length < MIN_TARGET) fresh = await pickFresh(LOOSE_MIN_SCORE); // loosen keyword match slightly
+  fresh = fresh.slice(0, BATCH_SIZE);
+
+  if (pool.length === 0) {
     return { created: 0, results: feedErrors, message: "News sources are unavailable right now. Try again later, or add a draft by hand below." };
   }
-  const cutoff = Date.now() - RECENCY_HOURS * 3600_000;
-  const items = feeds
-    .flat()
-    .filter((i) => { const t = Date.parse(i.pubDate || ""); return !Number.isNaN(t) && t >= cutoff; })
-    .map((i) => ({ i, score: relevance(i) }))
-    .filter((x) => x.score >= MIN_SCORE)
-    .sort((x, y) => y.score - x.score || Date.parse(y.i.pubDate) - Date.parse(x.i.pubDate))
-    .map((x) => x.i);
-  if (items.length === 0) {
-    return { created: 0, results: feedErrors, message: `No relevant tech/AI stories from the last ${RECENCY_HOURS} hours. Try again later.` };
-  }
-  const links = items.map((i) => i.link);
-  const [{ data: q }, { data: a }] = await Promise.all([
-    supabaseAdmin.from("review_queue").select("source_url").in("source_url", links),
-    supabaseAdmin.from("articles").select("source_url").in("source_url", links),
-  ]);
-  const seen = new Set([...(q ?? []), ...(a ?? [])].map((r) => r.source_url));
-  const fresh = items.filter((i) => !seen.has(i.link)).slice(0, BATCH_SIZE);
   if (fresh.length === 0) {
-    return { created: 0, results: feedErrors, message: "No new stories since the last fetch — everything recent is already drafted." };
+    return { created: 0, results: feedErrors, message: `No new tech/AI stories from the last ${RECENCY_HOURS / 24} days — everything recent is already drafted.` };
   }
 
   const results: { source: string; ok: boolean; error?: string }[] = [...feedErrors];
@@ -128,14 +156,19 @@ export async function runIngestion() {
         results.push({ source: item.link, ok: false, error: "Rejected: no commercial intent (not tech/software/AI)" });
         continue;
       }
-      const { error } = await supabaseAdmin.from("review_queue").insert({
-        ...draft,
-        source_url: item.link,
-        category: "World",
-        published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
-        status: "pending",
-      });
-      if (error) throw new Error(error.message);
+      const { data: saved, error } = await supabaseAdmin
+        .from("review_queue")
+        .insert({
+          ...draft,
+          source_url: item.link,
+          category: "World",
+          published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+      if (error) throw new Error(`Save failed: ${error.message}`);
+      if (!saved?.id) throw new Error("Save failed: database did not confirm the draft");
       results.push({ source: item.link, ok: true });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
