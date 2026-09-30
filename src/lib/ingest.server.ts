@@ -1,5 +1,7 @@
 const FEED_URLS = ["https://techcrunch.com/feed", "https://hnrss.org/frontpage"];
 const GEMINI_MODEL = "gemini-3.8-flash";
+const BACKUP_MODEL = "openai/gpt-6-astra";
+const GEMINI_TIMEOUT_MS = 25_000;
 
 type FeedItem = { title: string; description: string; link: string; pubDate: string };
 
@@ -54,7 +56,7 @@ function relevance(i: FeedItem) {
 
 type Draft = { title: string; subheadline: string; content: string };
 
-async function rewrite(item: FeedItem, apiKey: string): Promise<Draft | null> {
+async function rewrite(item: FeedItem, apiKey: string): Promise<{ draft: Draft | null; provider: "gemini" | "backup" }> {
   const prompt = `You are the editorial gatekeeper and senior journalist at Telyra, a premium digital newspaper covering technology, software, AI, and digital infrastructure.
 
 STEP 1 — Commercial Intent check (do this before writing anything):
@@ -69,10 +71,28 @@ Return JSON with keys: "rejected": false, "title" (new headline, max 12 words), 
 Source headline: ${item.title}
 Source summary: ${item.description}`;
 
+  try {
+    return { draft: parseDraft(await geminiText(prompt, apiKey)), provider: "gemini" as const };
+  } catch (e) {
+    console.warn("[ingest] Gemini failed, using backup:", e instanceof Error ? e.message : e);
+    return { draft: parseDraft(await backupText(prompt)), provider: "backup" as const };
+  }
+}
+
+function parseDraft(raw: string): Draft | null {
+  const text = raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+  const parsed = JSON.parse(text) as Partial<Draft> & { rejected?: boolean };
+  if (parsed.rejected === true || (!parsed.title && !parsed.content)) return null;
+  if (!parsed.title || !parsed.content) throw new Error("AI returned an incomplete draft");
+  return { title: parsed.title, subheadline: parsed.subheadline ?? "", content: parsed.content };
+}
+
+async function geminiText(prompt: string, apiKey: string): Promise<string> {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
     {
       method: "POST",
+      signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -82,11 +102,52 @@ Source summary: ${item.description}`;
   );
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-  const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  const parsed = JSON.parse(text) as Partial<Draft> & { rejected?: boolean };
-  if (parsed.rejected === true || (!parsed.title && !parsed.content)) return null;
-  if (!parsed.title || !parsed.content) throw new Error("Gemini returned an incomplete draft");
-  return { title: parsed.title, subheadline: parsed.subheadline ?? "", content: parsed.content };
+  return json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+}
+
+// Backup writer: Lovable AI Gateway (Responses API, streamed).
+async function backupText(prompt: string): Promise<string> {
+  const key = process.env["LOVABLE_API_KEY"];
+  if (!key) throw new Error("Backup AI is not configured");
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`,
+      "Lovable-API-Key": key,
+      "X-Lovable-AIG-SDK": "fetch",
+    },
+    body: JSON.stringify({
+      model: BACKUP_MODEL,
+      input: [{ role: "user", content: prompt + "\n\nReply with the JSON object only." }],
+      reasoning: { effort: "low" },
+      store: false,
+      stream: true,
+    }),
+  });
+  if (!res.ok || !res.body) throw new Error(`Backup AI ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", out = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const ev = JSON.parse(payload) as { type?: string; delta?: string; response?: { error?: { message?: string } } };
+        if (ev.type === "response.output_text.delta" && ev.delta) out += ev.delta;
+        if (ev.type === "response.failed" || ev.type === "error") throw new Error(`Backup AI failed: ${ev.response?.error?.message ?? "unknown"}`);
+      } catch (e) { if (e instanceof Error && e.message.startsWith("Backup AI")) throw e; }
+    }
+  }
+  if (!out.trim()) throw new Error("Backup AI returned no text");
+  return out;
 }
 
 async function loadFeeds(urls: string[]) {
@@ -148,10 +209,10 @@ export async function runIngestion() {
     return { created: 0, results: feedErrors, message: `No new tech/AI stories from the last ${RECENCY_HOURS / 24} days — everything recent is already drafted.` };
   }
 
-  const results: { source: string; ok: boolean; error?: string }[] = [...feedErrors];
+  const results: { source: string; ok: boolean; error?: string; provider?: string }[] = [...feedErrors];
   for (const item of fresh) {
     try {
-      const draft = await rewrite(item, apiKey);
+      const { draft, provider } = await rewrite(item, apiKey);
       if (!draft) {
         results.push({ source: item.link, ok: false, error: "Rejected: no commercial intent (not tech/software/AI)" });
         continue;
@@ -169,11 +230,11 @@ export async function runIngestion() {
         .single();
       if (error) throw new Error(`Save failed: ${error.message}`);
       if (!saved?.id) throw new Error("Save failed: database did not confirm the draft");
-      results.push({ source: item.link, ok: true });
+      results.push({ source: item.link, ok: true, provider });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       results.push({ source: item.link, ok: false, error: msg });
-      if (/Gemini (429|403|402)/.test(msg)) break; // stop the batch on quota/limit errors
+      if (/Backup AI (402|403)/.test(msg)) break; // both writers blocked — stop the batch
     }
   }
   const created = results.filter((r) => r.ok).length;
