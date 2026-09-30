@@ -90,6 +90,8 @@ function AdminPage() {
     onMutate: () => setNote("Checking news sources…"),
     onSuccess: (r) => {
       const failed = r.results.filter((x) => !x.ok);
+      console.log("[fetch] saved to review queue:", r.created, "results:", r.results);
+      failed.forEach((f) => console.error("[fetch] not saved:", f.source, f.error));
       setNote(`${r.message}${failed.length && r.created ? ` ${failed.length} skipped (e.g. ${failed[0]?.error}).` : ""}`);
       refresh();
     },
