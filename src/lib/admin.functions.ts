@@ -88,14 +88,15 @@ export const createManualDraft = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { error } = await context.supabase.from("review_queue").insert({
+    const { data: saved, error } = await context.supabase.from("review_queue").insert({
       title: data.title,
       subheadline: data.subheadline || null,
       content: data.content,
       category: data.category,
       source_url: data.source_url || null,
       status: "pending",
-    });
+    }).select("id").single();
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!saved?.id) throw new Error("Save failed: database did not confirm the draft");
+    return { ok: true, id: saved.id };
   });
