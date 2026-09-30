@@ -228,6 +228,8 @@ export async function runIngestion() {
         })
         .select("id")
         .single();
+      if (error) console.error("[ingest] review_queue insert failed:", error);
+      else console.log("[ingest] review_queue insert OK, id:", saved?.id);
       if (error) throw new Error(`Save failed: ${error.message}`);
       if (!saved?.id) throw new Error("Save failed: database did not confirm the draft");
       results.push({ source: item.link, ok: true, provider });
