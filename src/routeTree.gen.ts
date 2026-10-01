@@ -11,10 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BusinessRouteImport } from './routes/business'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CultureRouteImport } from './routes/culture'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TechRouteImport } from './routes/tech'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WorldRouteImport } from './routes/world'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
@@ -29,6 +33,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -39,14 +48,29 @@ const BusinessRoute = BusinessRouteImport.update({
   path: '/business',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CultureRoute = CultureRouteImport.update({
   id: '/culture',
   path: '/culture',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TechRoute = TechRouteImport.update({
   id: '/tech',
   path: '/tech',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorldRoute = WorldRouteImport.update({
@@ -72,10 +96,14 @@ const ApiPublicIngestRoute = ApiPublicIngestRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/business': typeof BusinessRoute
+  '/contact': typeof ContactRoute
   '/culture': typeof CultureRoute
+  '/privacy': typeof PrivacyRoute
   '/tech': typeof TechRoute
+  '/terms': typeof TermsRoute
   '/world': typeof WorldRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/article/$slug': typeof ArticleSlugRoute
@@ -83,10 +111,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/business': typeof BusinessRoute
+  '/contact': typeof ContactRoute
   '/culture': typeof CultureRoute
+  '/privacy': typeof PrivacyRoute
   '/tech': typeof TechRoute
+  '/terms': typeof TermsRoute
   '/world': typeof WorldRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/article/$slug': typeof ArticleSlugRoute
@@ -96,10 +128,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/business': typeof BusinessRoute
+  '/contact': typeof ContactRoute
   '/culture': typeof CultureRoute
+  '/privacy': typeof PrivacyRoute
   '/tech': typeof TechRoute
+  '/terms': typeof TermsRoute
   '/world': typeof WorldRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/article/$slug': typeof ArticleSlugRoute
@@ -109,10 +145,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/auth'
     | '/business'
+    | '/contact'
     | '/culture'
+    | '/privacy'
     | '/tech'
+    | '/terms'
     | '/world'
     | '/admin'
     | '/article/$slug'
@@ -120,10 +160,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
     | '/business'
+    | '/contact'
     | '/culture'
+    | '/privacy'
     | '/tech'
+    | '/terms'
     | '/world'
     | '/admin'
     | '/article/$slug'
@@ -132,10 +176,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/auth'
     | '/business'
+    | '/contact'
     | '/culture'
+    | '/privacy'
     | '/tech'
+    | '/terms'
     | '/world'
     | '/_authenticated/admin'
     | '/article/$slug'
@@ -145,10 +193,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   BusinessRoute: typeof BusinessRoute
+  ContactRoute: typeof ContactRoute
   CultureRoute: typeof CultureRoute
+  PrivacyRoute: typeof PrivacyRoute
   TechRoute: typeof TechRoute
+  TermsRoute: typeof TermsRoute
   WorldRoute: typeof WorldRoute
   ArticleSlugRoute: typeof ArticleSlugRoute
   ApiPublicIngestRoute: typeof ApiPublicIngestRoute
@@ -170,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -184,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/culture': {
       id: '/culture'
       path: '/culture'
@@ -191,11 +257,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CultureRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tech': {
       id: '/tech'
       path: '/tech'
       fullPath: '/tech'
       preLoaderRoute: typeof TechRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/world': {
@@ -243,10 +323,14 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   BusinessRoute: BusinessRoute,
+  ContactRoute: ContactRoute,
   CultureRoute: CultureRoute,
+  PrivacyRoute: PrivacyRoute,
   TechRoute: TechRoute,
+  TermsRoute: TermsRoute,
   WorldRoute: WorldRoute,
   ArticleSlugRoute: ArticleSlugRoute,
   ApiPublicIngestRoute: ApiPublicIngestRoute,
