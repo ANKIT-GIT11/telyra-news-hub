@@ -222,7 +222,7 @@ export async function runIngestion() {
         .insert({
           ...draft,
           source_url: item.link,
-          category: "World",
+          category: "Tech",
           published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
           status: "pending",
         })
