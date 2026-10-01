@@ -88,6 +88,12 @@ function ArticlePage() {
         </article>
 
         <div className="mx-auto mt-10 max-w-[68ch]">
+          {article.editorNote && (
+            <aside className="glass mb-8 rounded-2xl border-l-2 border-primary p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Editor's take</p>
+              <p className="mt-2 text-[16px] italic leading-relaxed text-foreground/90">{article.editorNote}</p>
+            </aside>
+          )}
           {article.body.map((paragraph, i) => (
             <p
               key={i}
