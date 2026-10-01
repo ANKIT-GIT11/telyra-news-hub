@@ -72,8 +72,8 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["live-articles"] });
   };
   const approve = useMutation({
-    mutationFn: async ({ id, affiliateTitle, affiliateUrl }: { id: string; affiliateTitle: string; affiliateUrl: string }) => {
-      await saveAffiliateFn({ data: { id, affiliate_title: affiliateTitle || null, affiliate_url: affiliateUrl || null } });
+    mutationFn: async ({ id, affiliateTitle, affiliateUrl, editorNote }: { id: string; affiliateTitle: string; affiliateUrl: string; editorNote: string }) => {
+      await saveAffiliateFn({ data: { id, affiliate_title: affiliateTitle || null, affiliate_url: affiliateUrl || null, editor_note: editorNote || null } });
       return approveFn({ data: { id } });
     },
     onSuccess: refresh,
@@ -170,6 +170,7 @@ type Draft = {
   status: string;
   affiliate_title: string | null;
   affiliate_url: string | null;
+  editor_note: string | null;
 };
 
 function DraftCard({
@@ -178,11 +179,12 @@ function DraftCard({
   reject,
 }: {
   draft: Draft;
-  approve: { mutate: (v: { id: string; affiliateTitle: string; affiliateUrl: string }) => void; isPending: boolean };
+  approve: { mutate: (v: { id: string; affiliateTitle: string; affiliateUrl: string; editorNote: string }) => void; isPending: boolean };
   reject: { mutate: (id: string) => void; isPending: boolean };
 }) {
   const [affiliateTitle, setAffiliateTitle] = useState(d.affiliate_title ?? "");
   const [affiliateUrl, setAffiliateUrl] = useState(d.affiliate_url ?? "");
+  const [editorNote, setEditorNote] = useState(d.editor_note ?? "");
 
   return (
     <article className="glass rounded-[20px] p-7 ring-1 ring-foreground/10 animate-rise">
@@ -199,6 +201,20 @@ function DraftCard({
       </div>
 
       <div className="mt-6 rounded-xl border border-input bg-background/40 p-4">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          Editor's take (optional — shown above the story)
+        </p>
+        <textarea
+          rows={3}
+          maxLength={2000}
+          value={editorNote}
+          onChange={(e) => setEditorNote(e.target.value)}
+          placeholder="Your intro or personal takeaway for readers"
+          className="mt-3 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+      </div>
+
+      <div className="mt-4 rounded-xl border border-input bg-background/40 p-4">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
           Related Tools box (optional — shown on the published story)
         </p>
@@ -220,7 +236,7 @@ function DraftCard({
 
       <div className="mt-6 flex gap-3">
         <button
-          onClick={() => approve.mutate({ id: d.id, affiliateTitle, affiliateUrl })}
+          onClick={() => approve.mutate({ id: d.id, affiliateTitle, affiliateUrl, editorNote })}
           disabled={approve.isPending}
           className="rounded-full bg-foreground px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-background hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
         >

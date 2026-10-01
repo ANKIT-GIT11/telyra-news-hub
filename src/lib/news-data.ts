@@ -23,6 +23,7 @@ export interface Article {
   body: string[];
   affiliateTitle?: string;
   affiliateUrl?: string;
+  editorNote?: string;
 }
 
 export const articles: Article[] = [

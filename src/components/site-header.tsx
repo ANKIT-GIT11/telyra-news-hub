@@ -1,11 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
-const NAV = [
-  { label: "World", to: "/world" },
-  { label: "Tech", to: "/tech" },
-  { label: "Business", to: "/business" },
-  { label: "Culture", to: "/culture" },
-] as const;
+import { SubscribeButton } from "@/components/subscribe-button";
+
+// Only populated sections are shown; World/Business/Culture are hidden until they have live stories.
+const NAV = [{ label: "Tech", to: "/tech" }] as const;
 
 export function SiteHeader() {
   return (
@@ -31,12 +29,7 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10px] text-muted-foreground hidden lg:inline">26 Sep 2026</span>
-          <button
-            type="button"
-            className="rounded-full bg-foreground px-4 py-2 text-[11px] font-medium uppercase tracking-[0.15em] text-background transition-colors hover:bg-primary hover:text-primary-foreground"
-          >
-            Subscribe
-          </button>
+          <SubscribeButton />
         </div>
       </div>
     </header>

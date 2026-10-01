@@ -43,6 +43,7 @@ export const updateDraftAffiliate = createServerFn({ method: "POST" })
         id: z.string().uuid(),
         affiliate_title: z.string().trim().max(200).nullable(),
         affiliate_url: z.string().trim().url().max(1000).nullable().or(z.literal("").transform(() => null)),
+        editor_note: z.string().trim().max(2000).nullable().optional(),
       })
       .parse(d),
   )
@@ -50,7 +51,7 @@ export const updateDraftAffiliate = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     const { error } = await context.supabase
       .from("review_queue")
-      .update({ affiliate_title: data.affiliate_title || null, affiliate_url: data.affiliate_url || null })
+      .update({ affiliate_title: data.affiliate_title || null, affiliate_url: data.affiliate_url || null, editor_note: data.editor_note || null })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
