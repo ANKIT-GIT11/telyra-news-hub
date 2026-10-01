@@ -14,11 +14,11 @@ export function SubscribeButton() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = emailSchema.safeParse(email);
-    if (!parsed.success) return toast.error("Please enter a valid email address.");
+    if (!parsed.success) { toast.error("Please enter a valid email address."); return; }
     setBusy(true);
     const { error } = await supabase.from("subscribers").insert({ email: parsed.data.toLowerCase() });
     setBusy(false);
-    if (error && error.code !== "23505") return toast.error("Couldn't subscribe right now. Please try again.");
+    if (error && error.code !== "23505") { toast.error("Couldn't subscribe right now. Please try again."); return; }
     toast.success(error ? "You're already on the list." : "You're subscribed — welcome to Telyra.");
     setEmail("");
     setOpen(false);
