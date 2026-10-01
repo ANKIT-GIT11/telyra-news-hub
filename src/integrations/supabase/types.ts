@@ -21,6 +21,7 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          editor_note: string | null
           id: string
           published_at: string
           source_url: string | null
@@ -35,6 +36,7 @@ export type Database = {
           category?: string
           content: string
           created_at?: string
+          editor_note?: string | null
           id?: string
           published_at?: string
           source_url?: string | null
@@ -49,6 +51,7 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          editor_note?: string | null
           id?: string
           published_at?: string
           source_url?: string | null
@@ -66,6 +69,7 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          editor_note: string | null
           id: string
           published_at: string | null
           source_url: string | null
@@ -80,6 +84,7 @@ export type Database = {
           category?: string
           content: string
           created_at?: string
+          editor_note?: string | null
           id?: string
           published_at?: string | null
           source_url?: string | null
@@ -94,6 +99,7 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          editor_note?: string | null
           id?: string
           published_at?: string | null
           source_url?: string | null
@@ -101,6 +107,24 @@ export type Database = {
           subheadline?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
         }
         Relationships: []
       }
