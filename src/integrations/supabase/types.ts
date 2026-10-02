@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           affiliate_title: string | null
           affiliate_url: string | null
+          archived_at: string | null
           category: string
           content: string
           created_at: string
@@ -33,6 +34,7 @@ export type Database = {
         Insert: {
           affiliate_title?: string | null
           affiliate_url?: string | null
+          archived_at?: string | null
           category?: string
           content: string
           created_at?: string
@@ -48,6 +50,7 @@ export type Database = {
         Update: {
           affiliate_title?: string | null
           affiliate_url?: string | null
+          archived_at?: string | null
           category?: string
           content?: string
           created_at?: string
