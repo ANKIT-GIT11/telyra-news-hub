@@ -66,6 +66,36 @@ export const rejectDraft = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const listLiveAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("articles")
+      .select("id, title, category, published_at")
+      .eq("status", "approved")
+      .order("published_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+// Soft delete: keeps the row for the audit trail, hides it from the public.
+export const archiveArticle = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: row, error } = await context.supabase
+      .from("articles")
+      .update({ status: "archived", archived_at: new Date().toISOString() })
+      .eq("id", data.id)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: row.id };
+  });
+
 export const fetchNewDrafts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

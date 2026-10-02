@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { supabase } from "@/integrations/supabase/client";
-import { approveDraft, createManualDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft, updateDraftAffiliate } from "@/lib/admin.functions";
+import { announceArticlesChanged } from "@/hooks/use-live-sync";
+import { approveDraft, archiveArticle, listLiveAdmin, createManualDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft, updateDraftAffiliate } from "@/lib/admin.functions";
 
 type Cat = "World" | "Tech" | "Business" | "Culture";
 function ManualDraft({ onSubmit, pending }: { onSubmit: (v: { title: string; subheadline: string; content: string; category: Cat; source_url: string }) => void; pending: boolean }) {
@@ -67,16 +68,25 @@ function AdminPage() {
   const ingestFn = useServerFn(fetchNewDrafts);
   const [note, setNote] = useState<string | null>(null);
 
+  const liveFn = useServerFn(listLiveAdmin);
+  const live = useQuery({ queryKey: ["admin-live"], queryFn: () => liveFn(), enabled: status.data?.isAdmin === true });
+  const archiveFn = useServerFn(archiveArticle);
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["queue"] });
+    qc.invalidateQueries({ queryKey: ["admin-live"] });
     qc.invalidateQueries({ queryKey: ["live-articles"] });
   };
+  const archive = useMutation({
+    mutationFn: (id: string) => archiveFn({ data: { id } }),
+    onSuccess: () => { setNote("Story removed from the site (kept in the archive)."); refresh(); void announceArticlesChanged(); },
+    onError: (e) => setNote(e.message),
+  });
   const approve = useMutation({
     mutationFn: async ({ id, affiliateTitle, affiliateUrl, editorNote }: { id: string; affiliateTitle: string; affiliateUrl: string; editorNote: string }) => {
       await saveAffiliateFn({ data: { id, affiliate_title: affiliateTitle || null, affiliate_url: affiliateUrl || null, editor_note: editorNote || null } });
       return approveFn({ data: { id } });
     },
-    onSuccess: refresh,
+    onSuccess: () => { refresh(); void announceArticlesChanged(); },
     onError: (e) => setNote(e.message),
   });
   const reject = useMutation({ mutationFn: (id: string) => rejectFn({ data: { id } }), onSuccess: refresh, onError: (e) => setNote(e.message) });
@@ -149,6 +159,25 @@ function AdminPage() {
         {queue.isError && <p className="mt-10 text-muted-foreground">Couldn't load the queue. Refresh the page to try again.</p>}
         {queue.data && queue.data.length === 0 && (
           <p className="mt-10 text-muted-foreground">The queue is empty. Fetch new stories to draft fresh articles.</p>
+        )}
+        {live.data && live.data.length > 0 && (
+          <section className="glass mt-8 rounded-[20px] p-6 ring-1 ring-foreground/10">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">Live on the site ({live.data.length})</p>
+            <ul className="mt-4 divide-y divide-border">
+              {live.data.map((a) => (
+                <li key={a.id} className="flex items-center justify-between gap-4 py-3">
+                  <span className="text-sm font-medium leading-snug">{a.title}</span>
+                  <button
+                    onClick={() => { if (confirm("Remove this story from the site? It stays in the archive.")) archive.mutate(a.id); }}
+                    disabled={archive.isPending}
+                    className="shrink-0 rounded-full border border-input px-4 py-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-destructive disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
         <div className="mt-8 space-y-6">
           {queue.data?.map((d) => (

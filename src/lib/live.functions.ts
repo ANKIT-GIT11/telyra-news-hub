@@ -37,7 +37,7 @@ export const listLiveArticles = createServerFn({ method: "GET" }).handler(async 
   const { data, error } = await publicClient()
     .from("articles")
     .select(COLS)
-    .eq("status", "published")
+    .eq("status", "approved")
     .order("published_at", { ascending: false })
     .limit(30);
   if (error) throw new Error(error.message);
@@ -51,7 +51,7 @@ export const getLiveArticle = createServerFn({ method: "GET" })
       .from("articles")
       .select(COLS)
       .eq("id", data.id)
-      .eq("status", "published")
+      .eq("status", "approved")
       .maybeSingle();
     if (error) throw new Error(error.message);
     return row;

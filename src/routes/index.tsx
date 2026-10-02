@@ -5,6 +5,7 @@ import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
 import { articles as mockArticles, type Article } from "@/lib/news-data";
 import { listLiveArticles } from "@/lib/live.functions";
 import { toArticle } from "@/lib/live-articles";
+import { ArticleImage } from "@/components/article-image";
 
 const liveQuery = queryOptions({
   queryKey: ["live-articles"],
@@ -15,9 +16,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Telyra — Today's front page" },
-      { name: "description", content: "The latest world stories from the Telyra newsroom, updated as they are published." },
+      { name: "description", content: "The latest tech and AI stories from the Telyra newsroom, updated as they are published." },
       { property: "og:title", content: "Telyra — Today's front page" },
-      { property: "og:description", content: "The latest world stories from the Telyra newsroom, updated as they are published." },
+      { property: "og:description", content: "The latest tech and AI stories from the Telyra newsroom, updated as they are published." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -48,7 +49,7 @@ function Index() {
               className="group glass block overflow-hidden rounded-[min(1.5vw,20px)] ring-foreground/10 ring-1 animate-rise"
             >
               <div className="relative">
-                <img src={hero.image} alt={hero.imageAlt} width={1536} height={864} className="aspect-[16/9] w-full object-cover" />
+                <ArticleImage src={hero.image} alt={hero.imageAlt} seed={hero.slug} width={1536} height={864} className="aspect-[16/9] w-full" />
                 <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
                   {hero.category}
                 </span>

@@ -4,6 +4,7 @@ import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
 import { byCategory, getArticle, type Article, type Category } from "@/lib/news-data";
 import { getLiveArticle } from "@/lib/live.functions";
 import { LIVE_PREFIX, toArticle } from "@/lib/live-articles";
+import { ArticleImage } from "@/components/article-image";
 
 const CATEGORY_ROUTES: Record<Category, "/world" | "/tech" | "/business" | "/culture"> = {
   World: "/world",
@@ -59,13 +60,7 @@ function ArticlePage() {
       <main className="mx-auto max-w-7xl px-6 py-8 pb-20">
         <article className="glass overflow-hidden rounded-[min(1.5vw,20px)] ring-foreground/10 ring-1 animate-rise">
           <div className="relative">
-            <img
-              src={article.image}
-              alt={article.imageAlt}
-              width={1024}
-              height={640}
-              className="aspect-[21/9] w-full object-cover"
-            />
+            <ArticleImage src={article.image} alt={article.imageAlt} seed={article.slug} width={1024} height={640} className="aspect-[21/9] w-full" />
             <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
               {article.category}
             </span>
@@ -89,9 +84,10 @@ function ArticlePage() {
 
         <div className="mx-auto mt-10 max-w-[68ch]">
           {article.editorNote && (
-            <aside className="glass mb-8 rounded-2xl border-l-2 border-primary p-5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-primary">Editor's take</p>
-              <p className="mt-2 text-[16px] italic leading-relaxed text-foreground/90">{article.editorNote}</p>
+            <aside className="editor-take mb-10 animate-fadein" aria-label="Editor's take">
+              <p className="text-[16px] leading-relaxed text-foreground/90">
+                <strong className="font-semibold text-foreground">Editor's Take:</strong> {article.editorNote}
+              </p>
             </aside>
           )}
           {article.body.map((paragraph, i) => (
