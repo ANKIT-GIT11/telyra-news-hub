@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { Article } from "@/lib/news-data";
+import { ArticleImage } from "@/components/article-image";
 
 export function ArticleImageCard({
   article,
@@ -21,14 +22,7 @@ export function ArticleImageCard({
       style={delay !== undefined ? { animationDelay: `${delay}ms` } : undefined}
     >
       <div className="relative">
-        <img
-          src={article.image}
-          alt={article.imageAlt}
-          width={1024}
-          height={640}
-          loading="lazy"
-          className="aspect-[16/10] w-full object-cover"
-        />
+        <ArticleImage src={article.image} alt={article.imageAlt} seed={article.slug} width={1024} height={640} lazy className="aspect-[16/10] w-full" />
         <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
           {article.category}
         </span>

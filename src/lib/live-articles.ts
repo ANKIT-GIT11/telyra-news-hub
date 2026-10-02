@@ -1,4 +1,4 @@
-import { CATEGORIES, articles as mock, type Article, type Category } from "@/lib/news-data";
+import { CATEGORIES, type Article, type Category } from "@/lib/news-data";
 import type { LiveRow } from "@/lib/live.functions";
 
 export const LIVE_PREFIX = "live-";
@@ -11,11 +11,9 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-/** Maps a database row onto the card shape, borrowing editorial imagery from the demo set. */
-export function toArticle(row: LiveRow, index = 0): Article {
+/** Maps a database row onto the card shape, with exactly one (fallback) image. */
+export function toArticle(row: LiveRow, _index = 0): Article {
   const category = (CATEGORIES as readonly string[]).includes(row.category) ? (row.category as Category) : "World";
-  const pool = mock.filter((a) => a.category === category);
-  const img = (pool.length ? pool : mock)[index % (pool.length || mock.length)] as Article;
   const body = row.content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   const words = row.content.split(/\s+/).length;
   return {
@@ -26,8 +24,8 @@ export function toArticle(row: LiveRow, index = 0): Article {
     author: "Telyra Desk",
     readTime: Math.max(1, Math.round(words / 220)),
     published: timeAgo(row.published_at),
-    image: img.image,
-    imageAlt: img.imageAlt,
+    image: "", // no source image stored — ArticleImage renders the abstract fallback
+    imageAlt: row.title,
     body,
     ...(row.editor_note ? { editorNote: row.editor_note } : {}),
     ...(row.affiliate_title && row.affiliate_url
