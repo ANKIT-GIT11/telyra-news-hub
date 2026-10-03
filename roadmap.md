@@ -8,4 +8,7 @@
 - [x] Fetch button: click-only, 60s cooldown after each run
 - [x] Friendly status when feeds fail / return nothing
 - [x] Manual "Create draft" form on the desk
+- [x] Reader recommendations: approved articles only, excluding the current article
+- [x] Editorial management: show every article state with soft-delete on every row
+- [x] Article SEO: dynamic title, description, Open Graph, canonical, Twitter, and NewsArticle metadata
 - [ ] Earlier plan items (Vercel SPA, service-role-only writes, slugs/tags, remove fetcher) — on hold: conflict with the desk workflow
