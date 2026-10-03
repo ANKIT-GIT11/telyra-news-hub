@@ -49,7 +49,7 @@ function Index() {
               className="group glass block overflow-hidden rounded-[min(1.5vw,20px)] ring-foreground/10 ring-1 animate-rise"
             >
               <div className="relative">
-                <ArticleImage src={hero.image} alt={hero.imageAlt} seed={hero.slug} width={1536} height={864} className="aspect-[16/9] w-full" />
+                <ArticleImage src={hero.image} alt={hero.imageAlt} seed={hero.slug} category={hero.category} width={1536} height={864} className="aspect-[16/9] w-full" />
                 <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
                   {hero.category}
                 </span>

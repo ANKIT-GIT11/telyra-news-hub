@@ -22,7 +22,7 @@ export function ArticleImageCard({
       style={delay !== undefined ? { animationDelay: `${delay}ms` } : undefined}
     >
       <div className="relative">
-        <ArticleImage src={article.image} alt={article.imageAlt} seed={article.slug} width={1024} height={640} lazy className="aspect-[16/10] w-full" />
+        <ArticleImage src={article.image} alt={article.imageAlt} seed={article.slug} category={article.category} width={1024} height={640} lazy className="aspect-[16/10] w-full" />
         <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
           {article.category}
         </span>

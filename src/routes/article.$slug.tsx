@@ -60,7 +60,7 @@ function ArticlePage() {
       <main className="mx-auto max-w-7xl px-6 py-8 pb-20">
         <article className="glass overflow-hidden rounded-[min(1.5vw,20px)] ring-foreground/10 ring-1 animate-rise">
           <div className="relative">
-            <ArticleImage src={article.image} alt={article.imageAlt} seed={article.slug} width={1024} height={640} className="aspect-[21/9] w-full" />
+            <ArticleImage src={article.image} alt={article.imageAlt} seed={article.slug} category={article.category} width={1024} height={640} className="aspect-[21/9] w-full" />
             <span className="glass absolute top-4 left-4 rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
               {article.category}
             </span>
