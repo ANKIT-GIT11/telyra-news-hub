@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
 import { byCategory, getArticle, type Article, type Category } from "@/lib/news-data";
-import { getLiveArticle } from "@/lib/live.functions";
+import { getLiveArticle, listRelatedLiveArticles } from "@/lib/live.functions";
 import { LIVE_PREFIX, toArticle } from "@/lib/live-articles";
 import { ArticleImage } from "@/components/article-image";
 
@@ -19,11 +19,16 @@ export const Route = createFileRoute("/article/$slug")({
       const id = params.slug.slice(LIVE_PREFIX.length);
       const row = await getLiveArticle({ data: { id } }).catch(() => null);
       if (!row) throw notFound();
-      return { article: toArticle(row), sourceUrl: row.source_url };
+      const relatedRows = await listRelatedLiveArticles({ data: { id: row.id, category: row.category } }).catch(() => []);
+      return { article: toArticle(row), sourceUrl: row.source_url, related: relatedRows.map((relatedRow) => toArticle(relatedRow)) };
     }
     const article = getArticle(params.slug);
     if (!article) throw notFound();
-    return { article, sourceUrl: null as string | null };
+    return {
+      article,
+      sourceUrl: null as string | null,
+      related: byCategory(article.category).filter((candidate) => candidate.slug !== article.slug).slice(0, 3),
+    };
   },
   head: ({ loaderData }) => {
     const article = loaderData?.article;
@@ -32,6 +37,8 @@ export const Route = createFileRoute("/article/$slug")({
         meta: [{ title: "Not found — Telyra" }, { name: "robots", content: "noindex" }],
       };
     }
+    const articlePath = `/article/${article.slug}`;
+    const shareImage = article.image.startsWith("https://") ? article.image : null;
     return {
       meta: [
         { title: `${article.title} — Telyra` },
@@ -39,7 +46,28 @@ export const Route = createFileRoute("/article/$slug")({
         { property: "og:title", content: `${article.title} — Telyra` },
         { property: "og:description", content: article.excerpt },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: articlePath },
+        ...(shareImage ? [{ property: "og:image", content: shareImage }] : []),
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: `${article.title} — Telyra` },
+        { name: "twitter:description", content: article.excerpt },
+        ...(shareImage ? [{ name: "twitter:image", content: shareImage }] : []),
+      ],
+      links: [{ rel: "canonical", href: articlePath }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            headline: article.title,
+            description: article.excerpt,
+            ...(shareImage ? { image: [shareImage] } : {}),
+            author: { "@type": "Organization", name: article.author },
+            publisher: { "@type": "Organization", name: "Telyra" },
+            mainEntityOfPage: articlePath,
+          }),
+        },
       ],
     };
   },
@@ -49,10 +77,7 @@ export const Route = createFileRoute("/article/$slug")({
 });
 
 function ArticlePage() {
-  const { article, sourceUrl } = Route.useLoaderData() as { article: Article; sourceUrl: string | null };
-  const related = byCategory(article.category)
-    .filter((a) => a.slug !== article.slug)
-    .slice(0, 3);
+  const { article, sourceUrl, related } = Route.useLoaderData() as { article: Article; sourceUrl: string | null; related: Article[] };
 
   return (
     <div className="min-h-screen font-sans text-foreground antialiased">

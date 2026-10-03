@@ -162,13 +162,18 @@ function AdminPage() {
         )}
         {live.data && live.data.length > 0 && (
           <section className="glass mt-8 rounded-[20px] p-6 ring-1 ring-foreground/10">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">Live on the site ({live.data.length})</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">All articles ({live.data.length})</p>
             <ul className="mt-4 divide-y divide-border">
               {live.data.map((a) => (
                 <li key={a.id} className="flex items-center justify-between gap-4 py-3">
-                  <span className="text-sm font-medium leading-snug">{a.title}</span>
+                  <span className="min-w-0 text-sm font-medium leading-snug">
+                    <span className="block truncate">{a.title || "Untitled article"}</span>
+                    <span className="mt-1 block font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
+                      {a.category || "Uncategorised"} · {a.status || "Legacy / unset"}
+                    </span>
+                  </span>
                   <button
-                    onClick={() => { if (confirm("Remove this story from the site? It stays in the archive.")) archive.mutate(a.id); }}
+                    onClick={() => { if (confirm("Archive this story? It will stay in the database and disappear from public pages.")) archive.mutate(a.id); }}
                     disabled={archive.isPending}
                     className="shrink-0 rounded-full border border-input px-4 py-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-destructive disabled:opacity-50"
                   >
