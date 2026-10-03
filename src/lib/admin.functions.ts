@@ -72,10 +72,8 @@ export const listLiveAdmin = createServerFn({ method: "GET" })
     await assertAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase
       .from("articles")
-      .select("id, title, category, published_at")
-      .eq("status", "approved")
-      .order("published_at", { ascending: false })
-      .limit(50);
+      .select("id, title, category, published_at, status, archived_at, created_at")
+      .order("created_at", { ascending: false, nullsFirst: false });
     if (error) throw new Error(error.message);
     return data;
   });

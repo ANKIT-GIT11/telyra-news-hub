@@ -56,3 +56,20 @@ export const getLiveArticle = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return row;
   });
+
+export const listRelatedLiveArticles = createServerFn({ method: "GET" })
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), category: z.string().min(1).max(80) }).parse(d),
+  )
+  .handler(async ({ data }): Promise<LiveRow[]> => {
+    const { data: rows, error } = await publicClient()
+      .from("articles")
+      .select(COLS)
+      .eq("status", "approved")
+      .eq("category", data.category)
+      .neq("id", data.id)
+      .order("published_at", { ascending: false })
+      .limit(3);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
