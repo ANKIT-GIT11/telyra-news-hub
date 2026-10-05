@@ -30,6 +30,7 @@ export type Database = {
           subheadline: string | null
           title: string
           updated_at: string
+          views: number
         }
         Insert: {
           affiliate_title?: string | null
@@ -46,6 +47,7 @@ export type Database = {
           subheadline?: string | null
           title: string
           updated_at?: string
+          views?: number
         }
         Update: {
           affiliate_title?: string | null
@@ -62,6 +64,7 @@ export type Database = {
           subheadline?: string | null
           title?: string
           updated_at?: string
+          views?: number
         }
         Relationships: []
       }
@@ -162,6 +165,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_article_views: { Args: { _id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"

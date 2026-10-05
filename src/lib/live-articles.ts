@@ -27,6 +27,7 @@ export function toArticle(row: LiveRow, _index = 0): Article {
     image: "", // no source image stored — ArticleImage renders the abstract fallback
     imageAlt: row.title,
     body,
+    views: row.views,
     ...(row.editor_note ? { editorNote: row.editor_note } : {}),
     ...(row.affiliate_title && row.affiliate_url
       ? { affiliateTitle: row.affiliate_title, affiliateUrl: row.affiliate_url }
