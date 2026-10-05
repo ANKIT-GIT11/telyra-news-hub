@@ -21,7 +21,26 @@ export const Route = createFileRoute("/privacy")({
         <li><strong>Technical data:</strong> standard server logs such as browser type and pages visited, used to keep the site secure and working.</li>
       </ul>
       <h2>Cookies</h2>
-      <p>We use only essential cookies and local storage needed to run the site, such as keeping editors signed in. If we add analytics or advertising cookies in future, we will update this policy and ask for consent where the law requires it.</p>
+      <p>We use essential cookies and local storage needed to run the site, such as keeping editors signed in.</p>
+      <h2>Advertising and analytics</h2>
+      <p>
+        Telyra may show advertising and use analytics tools to understand which stories readers find useful.
+        When it does, third-party vendors — including Google — may use cookies to serve ads based on your
+        prior visits to this and other websites, and to measure how those ads perform. These vendors operate
+        under their own privacy policies, and we do not control the cookies they set.
+      </p>
+      <p>
+        You can turn off personalised advertising in Google's Ads Settings (
+        <a href="https://www.google.com/settings/ads" target="_blank" rel="noreferrer">
+          google.com/settings/ads
+        </a>
+        ) and manage many advertising cookies through the Digital Advertising Alliance's opt-out page (
+        <a href="https://optout.aboutads.info" target="_blank" rel="noreferrer">
+          optout.aboutads.info
+        </a>
+        ). Where the law in your region requires consent before non-essential cookies are set, we will ask
+        for it first.
+      </p>
       <h2>AI-assisted editorial workflow</h2>
       <p>Some Telyra stories start from public news sources and are drafted with the help of AI writing tools. Every AI-assisted draft is reviewed by a human editor before it is published. Each such story links to its original source. We do not use your personal data to train AI models.</p>
       <h2>Affiliate links</h2>
