@@ -58,6 +58,17 @@ export const getLiveArticle = createServerFn({ method: "GET" })
     return row;
   });
 
+export const incrementArticleViews = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }): Promise<number | null> => {
+    const { data: views, error } = await publicClient().rpc("increment_article_views", { _id: data.id });
+    if (error) {
+      console.error("[views] increment failed:", error.message);
+      return null;
+    }
+    return views ?? null;
+  });
+
 export const listRelatedLiveArticles = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
     z.object({ id: z.string().uuid(), category: z.string().min(1).max(80) }).parse(d),

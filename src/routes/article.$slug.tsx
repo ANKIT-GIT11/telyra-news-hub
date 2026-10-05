@@ -1,8 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
 import { byCategory, getArticle, type Article, type Category } from "@/lib/news-data";
-import { getLiveArticle, listRelatedLiveArticles } from "@/lib/live.functions";
+import { getLiveArticle, incrementArticleViews, listRelatedLiveArticles } from "@/lib/live.functions";
 import { LIVE_PREFIX, toArticle } from "@/lib/live-articles";
 import { ArticleImage } from "@/components/article-image";
 
