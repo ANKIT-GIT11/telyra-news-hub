@@ -186,3 +186,224 @@
   border-radius: 0 1rem 1rem 0;
   padding: 1.25rem 1.5rem;
 }
+
+/*
+ * Site information pages (About, Contact, Privacy, Terms) — deep-navy editorial
+ * panel from the same family as the sponsored-tools callout, so it reads as
+ * premium in both light and dark mode.
+ */
+.info-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-primary);
+}
+
+.info-kicker::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+.info-panel {
+  background:
+    radial-gradient(120% 150% at 0% 0%, oklch(0.5 0.13 255 / 0.32), transparent 55%),
+    radial-gradient(90% 130% at 100% 100%, oklch(0.46 0.11 265 / 0.26), transparent 60%),
+    linear-gradient(140deg, oklch(0.2 0.045 262), oklch(0.28 0.055 256));
+  border: 1px solid oklch(0.85 0.06 250 / 0.22);
+  box-shadow: 0 30px 65px -38px oklch(0.18 0.04 262 / 0.8);
+  border-radius: 26px;
+  padding: 1.75rem;
+  color: oklch(0.95 0.01 240);
+}
+
+@media (min-width: 640px) {
+  .info-panel {
+    padding: 2.75rem 3rem;
+  }
+}
+
+.info-panel h2 {
+  margin-top: 2.5rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: oklch(0.98 0.006 240);
+}
+
+.info-panel > h2:first-child {
+  margin-top: 0;
+}
+
+.info-panel p {
+  margin-top: 0.9rem;
+  font-size: 16px;
+  line-height: 1.75;
+  color: oklch(0.95 0.01 240 / 0.8);
+}
+
+.info-panel h2 + p {
+  margin-top: 0.7rem;
+}
+
+.info-panel strong {
+  color: oklch(0.98 0.006 240);
+  font-weight: 600;
+}
+
+.info-panel a {
+  color: oklch(0.82 0.09 240);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: oklch(0.82 0.09 240 / 0.45);
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.info-panel a:hover {
+  text-decoration-color: oklch(0.82 0.09 240);
+}
+
+.info-panel ul,
+.info-panel ol {
+  margin-top: 1.1rem;
+  list-style: none;
+}
+
+.info-panel li {
+  position: relative;
+  margin-top: 0.7rem;
+  font-size: 16px;
+  line-height: 1.7;
+  color: oklch(0.95 0.01 240 / 0.8);
+}
+
+.info-panel ul > li {
+  padding-left: 1.15rem;
+}
+
+.info-panel ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: oklch(0.8 0.1 245 / 0.75);
+}
+
+.info-panel ol {
+  counter-reset: step;
+}
+
+.info-panel ol > li {
+  counter-increment: step;
+  padding-left: 2.2rem;
+}
+
+.info-panel ol > li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.3em;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: oklch(0.78 0.07 250);
+}
+
+.info-note {
+  margin-top: 2rem;
+  border: 1px solid oklch(0.85 0.06 250 / 0.18);
+  background: oklch(1 0 0 / 0.045);
+  border-radius: 16px;
+  padding: 1.1rem 1.3rem;
+  font-size: 15px;
+  line-height: 1.7;
+  color: oklch(0.95 0.01 240 / 0.78);
+}
+
+.info-note strong {
+  color: oklch(0.98 0.006 240);
+  font-weight: 600;
+}
+
+/* Contact card — the one loud element on an otherwise quiet page. */
+.info-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+  border: 1px solid oklch(0.85 0.06 250 / 0.2);
+  background: linear-gradient(120deg, oklch(0.5 0.13 255 / 0.32), oklch(0.3 0.06 258 / 0.5));
+  border-radius: 18px;
+  padding: 1.4rem 1.5rem;
+}
+
+.info-panel .info-cta-label {
+  margin-top: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: oklch(0.8 0.08 250);
+}
+
+.info-panel .info-cta-mail {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: oklch(0.98 0.006 240);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.info-panel .info-cta-mail:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: oklch(0.82 0.09 240 / 0.6);
+}
+
+.info-panel .info-cta-sub {
+  margin-top: 0.4rem;
+  font-size: 14px;
+  color: oklch(0.95 0.01 240 / 0.65);
+}
+
+.info-panel .info-cta-btn {
+  border-radius: 9999px;
+  background: oklch(0.78 0.14 75);
+  color: oklch(0.24 0.05 60);
+  padding: 0.7rem 1.2rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.info-panel .info-cta-btn:hover {
+  background: oklch(0.84 0.14 78);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-panel a,
+  .info-panel .info-cta-btn {
+    transition: none;
+  }
+}
+
