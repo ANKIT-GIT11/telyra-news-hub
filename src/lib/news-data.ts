@@ -24,6 +24,7 @@ export interface Article {
   affiliateTitle?: string;
   affiliateUrl?: string;
   editorNote?: string;
+  views?: number;
 }
 
 export const articles: Article[] = [
