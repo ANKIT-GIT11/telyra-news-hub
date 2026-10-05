@@ -17,4 +17,4 @@ export function InfoPage({ kicker, title, updated, children }: { kicker: string;
   );
 }
 
-export const CONTACT_EMAIL = "hello@telyra.com";
+export const CONTACT_EMAIL = "contact.telyra2026@gmail.com";
