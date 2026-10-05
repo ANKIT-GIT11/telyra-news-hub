@@ -79,6 +79,22 @@ export const Route = createFileRoute("/article/$slug")({
 
 function ArticlePage() {
   const { article, sourceUrl, related } = Route.useLoaderData() as { article: Article; sourceUrl: string | null; related: Article[] };
+  const [views, setViews] = useState<number | null>(article.views ?? null);
+
+  useEffect(() => {
+    if (!article.slug.startsWith(LIVE_PREFIX)) return;
+    const id = article.slug.slice(LIVE_PREFIX.length);
+    let cancelled = false;
+    incrementArticleViews({ data: { id } })
+      .then((count) => {
+        if (!cancelled && count !== null) setViews(count);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [article.slug]);
+
 
   return (
     <div className="min-h-screen font-sans text-foreground antialiased">
@@ -104,6 +120,14 @@ function ArticlePage() {
               <span>{article.readTime} min read</span>
               <span>·</span>
               <span>{article.published}</span>
+              {views !== null && (
+                <>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                    {views.toLocaleString()} {views === 1 ? "view" : "views"}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </article>
