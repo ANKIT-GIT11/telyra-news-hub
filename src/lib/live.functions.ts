@@ -17,6 +17,8 @@ export type LiveRow = {
   views: number;
 };
 
+export type TrendingRow = Pick<LiveRow, "id" | "title" | "views">;
+
 function publicClient() {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
   return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
@@ -44,6 +46,20 @@ export const listLiveArticles = createServerFn({ method: "GET" }).handler(async 
   if (error) throw new Error(error.message);
   return data ?? [];
 });
+
+export const listTrendingArticles = createServerFn({ method: "GET" }).handler(
+  async (): Promise<TrendingRow[]> => {
+    const { data, error } = await publicClient()
+      .from("articles")
+      .select("id, title, views")
+      .eq("status", "approved")
+      .order("views", { ascending: false })
+      .order("published_at", { ascending: false })
+      .limit(4);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+);
 
 export const getLiveArticle = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
