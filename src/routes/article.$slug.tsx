@@ -34,7 +34,7 @@ export const Route = createFileRoute("/article/$slug")({
       };
     }
     const articlePath = `/article/${article.slug}`;
-    const shareImage = article.image.startsWith("https://") ? article.image : null;
+    const shareImage = article.image.startsWith("https://") ? article.image : article.image.startsWith("/api/public/article-image/") ? `https://telyra.lovable.app${article.image}` : null;
     return {
       meta: [
         { title: `${article.title} — Telyra` },

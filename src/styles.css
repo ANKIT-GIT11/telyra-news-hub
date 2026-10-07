@@ -526,6 +526,12 @@
   opacity: 1;
 }
 
+.share-modal {
+  letter-spacing: 0;
+  --primary: oklch(0.78 0.14 75);
+  --primary-foreground: oklch(0.2 0.03 255);
+}
+
 @media (max-width: 640px) {
   .trending-label span {
     display: none;
