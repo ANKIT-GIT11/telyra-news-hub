@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Replace article sharing with a dark multi-platform modal and verified copy confirmation
+- [ ] Add unique Cloud-stored article images, editorial uploads, and publishing enforcement
+- [ ] Verify sharing and image safeguards
+
 - [x] Add affiliate_title / affiliate_url to articles + review_queue (migration applied)
 - [x] Admin review screen: affiliate inputs, saved on Approve
 - [x] Article page: Related Tools box shows only when affiliate data exists
