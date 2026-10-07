@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
-import { byCategory, getArticle, type Article, type Category } from "@/lib/news-data";
+import { type Article, type Category } from "@/lib/news-data";
 import { getLiveArticle, incrementArticleViews, listRelatedLiveArticles } from "@/lib/live.functions";
 import { LIVE_PREFIX, toArticle } from "@/lib/live-articles";
 import { ArticleImage } from "@/components/article-image";
@@ -24,23 +24,17 @@ export const Route = createFileRoute("/article/$slug")({
       const relatedRows = await listRelatedLiveArticles({ data: { id: row.id, category: row.category } }).catch(() => []);
       return { article: toArticle(row), sourceUrl: row.source_url, related: relatedRows.map((relatedRow) => toArticle(relatedRow)) };
     }
-    const article = getArticle(params.slug);
-    if (!article) throw notFound();
-    return {
-      article,
-      sourceUrl: null as string | null,
-      related: byCategory(article.category).filter((candidate) => candidate.slug !== article.slug).slice(0, 3),
-    };
+    throw notFound();
   },
   head: ({ loaderData }) => {
     const article = loaderData?.article;
     if (!article) {
       return {
-        meta: [{ title: "Not found — Telyra" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Story unavailable — Telyra" }, { name: "description", content: "This Telyra story is unavailable." }, { property: "og:title", content: "Story unavailable — Telyra" }, { property: "og:description", content: "This Telyra story is unavailable." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }],
       };
     }
     const articlePath = `/article/${article.slug}`;
-    const shareImage = article.image.startsWith("https://") ? article.image : null;
+    const shareImage = article.image.startsWith("https://") ? article.image : article.image.startsWith("/api/public/article-image/") ? `https://telyra.lovable.app${article.image}` : null;
     return {
       meta: [
         { title: `${article.title} — Telyra` },

@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
+import { ArticleImageUpload } from "@/components/article-image-upload";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { announceArticlesChanged } from "@/hooks/use-live-sync";
 import { approveDraft, archiveArticle, listLiveAdmin, createManualDraft, fetchNewDrafts, getAdminStatus, listQueue, rejectDraft, updateDraftAffiliate } from "@/lib/admin.functions";
@@ -133,7 +135,7 @@ function AdminPage() {
           </div>
           <div className="flex gap-3">
             {status.data?.isAdmin && (
-              <button
+               <button
                 onClick={() => ingest.mutate()} disabled={ingest.isPending || cooldown > 0}
                 className="rounded-full bg-primary px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-primary-foreground disabled:opacity-50"
               >
@@ -165,14 +167,15 @@ function AdminPage() {
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">All articles ({live.data.length})</p>
             <ul className="mt-4 divide-y divide-border">
               {live.data.map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-4 py-3">
+                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-4 py-3">
                   <span className="min-w-0 text-sm font-medium leading-snug">
                     <span className="block truncate">{a.title || "Untitled article"}</span>
                     <span className="mt-1 block font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
                       {a.category || "Uncategorised"} · {a.status || "Legacy / unset"}
                     </span>
                   </span>
-                  <button
+                   <ArticleImageUpload id={a.id} target="articles" hasImage={Boolean(a.image_url)} onSaved={() => { refresh(); void announceArticlesChanged(); }} />
+                   <button
                     onClick={() => { if (confirm("Archive this story? It will stay in the database and disappear from public pages.")) archive.mutate(a.id); }}
                     disabled={archive.isPending}
                     className="shrink-0 rounded-full border border-input px-4 py-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-destructive disabled:opacity-50"
@@ -186,7 +189,7 @@ function AdminPage() {
         )}
         <div className="mt-8 space-y-6">
           {queue.data?.map((d) => (
-            <DraftCard key={d.id} draft={d} approve={approve} reject={reject} />
+            <DraftCard key={d.id} draft={d} approve={approve} reject={reject} refresh={refresh} />
           ))}
         </div>
       </main>
@@ -205,16 +208,19 @@ type Draft = {
   affiliate_title: string | null;
   affiliate_url: string | null;
   editor_note: string | null;
+  image_url: string | null;
 };
 
 function DraftCard({
   draft: d,
   approve,
   reject,
+  refresh,
 }: {
   draft: Draft;
   approve: { mutate: (v: { id: string; affiliateTitle: string; affiliateUrl: string; editorNote: string }) => void; isPending: boolean };
   reject: { mutate: (id: string) => void; isPending: boolean };
+  refresh: () => void;
 }) {
   const [affiliateTitle, setAffiliateTitle] = useState(d.affiliate_title ?? "");
   const [affiliateUrl, setAffiliateUrl] = useState(d.affiliate_url ?? "");
@@ -268,14 +274,16 @@ function DraftCard({
         </div>
       </div>
 
+      <div className="mt-6"><ArticleImageUpload id={d.id} target="review_queue" hasImage={Boolean(d.image_url)} onSaved={refresh} /></div>
       <div className="mt-6 flex gap-3">
-        <button
+        <Button
           onClick={() => approve.mutate({ id: d.id, affiliateTitle, affiliateUrl, editorNote })}
-          disabled={approve.isPending}
+          disabled={approve.isPending || !d.image_url}
+          title={!d.image_url ? "Upload a unique header image before approving" : "Publish article"}
           className="rounded-full bg-foreground px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.15em] text-background hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
         >
           Approve
-        </button>
+        </Button>
         <button
           onClick={() => reject.mutate(d.id)} disabled={reject.isPending}
           className="rounded-full border border-input px-5 py-2.5 text-[11px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground"

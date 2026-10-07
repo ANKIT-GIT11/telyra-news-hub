@@ -1,11 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
-import { byCategory, CATEGORY_META, type Category } from "@/lib/news-data";
+import { CATEGORY_META, type Category } from "@/lib/news-data";
+import { listLiveArticles } from "@/lib/live.functions";
+import { toArticle } from "@/lib/live-articles";
 
 export function CategoryPage({ category }: { category: Category }) {
   const meta = CATEGORY_META[category];
-  const list = byCategory(category);
+  const { data: rows = [] } = useQuery({ queryKey: ["live-articles"], queryFn: () => listLiveArticles() });
+  const list = rows.filter((row) => row.category === category).map((row) => toArticle(row));
 
   return (
     <div className="min-h-screen font-sans text-foreground antialiased">

@@ -23,6 +23,7 @@ import { Route as WorldRouteImport } from './routes/world'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as ApiPublicIngestRouteImport } from './routes/api/public/ingest'
+import { Route as ApiPublicArticleImageIdRouteImport } from './routes/api/public/article-image.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -93,6 +94,11 @@ const ApiPublicIngestRoute = ApiPublicIngestRouteImport.update({
   path: '/api/public/ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicArticleImageIdRoute = ApiPublicArticleImageIdRouteImport.update({
+  id: '/api/public/article-image/$id',
+  path: '/api/public/article-image/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/api/public/ingest': typeof ApiPublicIngestRoute
+  '/api/public/article-image/$id': typeof ApiPublicArticleImageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/api/public/ingest': typeof ApiPublicIngestRoute
+  '/api/public/article-image/$id': typeof ApiPublicArticleImageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/api/public/ingest': typeof ApiPublicIngestRoute
+  '/api/public/article-image/$id': typeof ApiPublicArticleImageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/article/$slug'
     | '/api/public/ingest'
+    | '/api/public/article-image/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/article/$slug'
     | '/api/public/ingest'
+    | '/api/public/article-image/$id'
   id:
     | '__root__'
     | '/'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/article/$slug'
     | '/api/public/ingest'
+    | '/api/public/article-image/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   WorldRoute: typeof WorldRoute
   ArticleSlugRoute: typeof ArticleSlugRoute
   ApiPublicIngestRoute: typeof ApiPublicIngestRoute
+  ApiPublicArticleImageIdRoute: typeof ApiPublicArticleImageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/article-image/$id': {
+      id: '/api/public/article-image/$id'
+      path: '/api/public/article-image/$id'
+      fullPath: '/api/public/article-image/$id'
+      preLoaderRoute: typeof ApiPublicArticleImageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -334,6 +354,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorldRoute: WorldRoute,
   ArticleSlugRoute: ArticleSlugRoute,
   ApiPublicIngestRoute: ApiPublicIngestRoute,
+  ApiPublicArticleImageIdRoute: ApiPublicArticleImageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
