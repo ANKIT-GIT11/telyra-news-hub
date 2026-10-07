@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/site-header";
 import { ArticleImageCard, SectionDivider } from "@/components/article-cards";
-import { articles as mockArticles, type Article } from "@/lib/news-data";
+import { type Article } from "@/lib/news-data";
 import { listLiveArticles } from "@/lib/live.functions";
 import { toArticle } from "@/lib/live-articles";
 import { ArticleImage } from "@/components/article-image";
@@ -32,8 +32,9 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { data: rows } = useSuspenseQuery(liveQuery);
   const isLive = rows.length > 0;
-  const list: Article[] = isLive ? rows.map((r, i) => toArticle(r, i)) : mockArticles;
-  const hero = list[0] as Article;
+  const list: Article[] = rows.map((r, i) => toArticle(r, i));
+  const hero = list[0];
+  if (!hero) return <div className="min-h-screen"><SiteHeader /><main className="mx-auto max-w-7xl px-6 py-20"><h1 className="font-display text-4xl">Telyra</h1><p className="mt-4 text-muted-foreground">New stories are being prepared by the newsroom.</p></main></div>;
   const trending = list.slice(1, 5);
   const grid = list.slice(isLive ? 1 : 5);
 
