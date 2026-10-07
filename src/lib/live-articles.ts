@@ -24,7 +24,7 @@ export function toArticle(row: LiveRow, _index = 0): Article {
     author: "Telyra Desk",
     readTime: Math.max(1, Math.round(words / 220)),
     published: timeAgo(row.published_at),
-    image: "", // no source image stored — ArticleImage renders the abstract fallback
+    image: row.image_url ?? "",
     imageAlt: row.title,
     body,
     views: row.views,

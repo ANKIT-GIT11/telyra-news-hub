@@ -15,6 +15,8 @@ export type LiveRow = {
   affiliate_url: string | null;
   editor_note: string | null;
   views: number;
+  image_url: string | null;
+  image_path: string | null;
 };
 
 export type TrendingRow = Pick<LiveRow, "id" | "title" | "views">;
@@ -34,7 +36,7 @@ function publicClient() {
   });
 }
 
-const COLS = "id, title, subheadline, content, source_url, category, published_at, affiliate_title, affiliate_url, editor_note, views";
+const COLS = "id, title, subheadline, content, source_url, category, published_at, affiliate_title, affiliate_url, editor_note, views, image_url, image_path";
 
 export const listLiveArticles = createServerFn({ method: "GET" }).handler(async (): Promise<LiveRow[]> => {
   const { data, error } = await publicClient()
