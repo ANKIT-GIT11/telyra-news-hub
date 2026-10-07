@@ -6,6 +6,7 @@ import { byCategory, getArticle, type Article, type Category } from "@/lib/news-
 import { getLiveArticle, incrementArticleViews, listRelatedLiveArticles } from "@/lib/live.functions";
 import { LIVE_PREFIX, toArticle } from "@/lib/live-articles";
 import { ArticleImage } from "@/components/article-image";
+import { ArticleShareButton } from "@/components/article-share-button";
 
 const CATEGORY_ROUTES: Record<Category, "/world" | "/tech" | "/business" | "/culture"> = {
   World: "/world",
@@ -114,7 +115,7 @@ function ArticlePage() {
             <p className="mt-4 max-w-[60ch] text-pretty text-lg leading-relaxed text-muted-foreground">
               {article.excerpt}
             </p>
-            <div className="mt-6 flex items-center gap-3 font-mono text-[11px] text-muted-foreground">
+            <div className="mt-6 flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted-foreground">
               <span className="font-medium text-foreground">By {article.author}</span>
               <span>·</span>
               <span>{article.readTime} min read</span>
@@ -128,6 +129,7 @@ function ArticlePage() {
                   </span>
                 </>
               )}
+              <ArticleShareButton title={article.title} />
             </div>
           </div>
         </article>

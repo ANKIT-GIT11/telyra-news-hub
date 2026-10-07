@@ -11,12 +11,13 @@ const trendingQuery = {
   staleTime: 60_000,
 };
 
-function Headline({ article }: { article: TrendingRow }) {
+function Headline({ article, duplicate = false }: { article: TrendingRow; duplicate?: boolean }) {
   return (
     <Link
       to="/article/$slug"
       params={{ slug: `${LIVE_PREFIX}${article.id}` }}
       className="trending-link"
+      tabIndex={duplicate ? -1 : undefined}
     >
       <span>{article.title}</span>
       <span className="trending-views" aria-label={`${article.views} views`}>
@@ -43,7 +44,7 @@ export function TrendingTicker() {
               {data.map((article) => <Headline key={article.id} article={article} />)}
             </div>
             <div className="trending-set" aria-hidden="true">
-              {data.map((article) => <Headline key={`copy-${article.id}`} article={article} />)}
+              {data.map((article) => <Headline key={`copy-${article.id}`} article={article} duplicate />)}
             </div>
           </div>
         </div>
